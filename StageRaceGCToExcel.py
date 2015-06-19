@@ -6,7 +6,7 @@ import Utils
 import Model
 from FitSheetWrapper import FitSheetWrapper
 
-def StageRaceGCToExcel( fname_excel, model ):
+def StageRaceGCToExcel( fname_excel, model, individualGC=True ):
 	def getRiderInfo( bib ):
 		rider = model.registration.bibToRider[bib]
 		return u'{}: {}'.format(bib, rider.results_name)
@@ -36,6 +36,10 @@ def StageRaceGCToExcel( fname_excel, model ):
 	bold_format = wb.add_format( {'bold': True} )
 	time_format = wb.add_format( {'num_format': 'hh:mm:ss'} )
 	high_precision_time_format = wb.add_format( {'num_format': 'hh:mm:ss.000'} )
+	
+	comment_style = {'width':400}
+	wide_comment_style = {'width':800}
+	narrow_comment_style = {'width':256}
 	
 	#---------------------------------------------------------------------------------------
 	def writeIC( ws, stage ):
@@ -98,16 +102,15 @@ def StageRaceGCToExcel( fname_excel, model ):
 			fit_sheet.write( rowNum, col, tc.team ); col += 1
 			
 			fit_sheet.write( rowNum, col, tc.sum_best_top_times.value / (24.0*60.0*60.0), time_format )
-			ws.write_comment( rowNum, col, formatContext(tc.sum_best_top_times.context), {'width':256} )
+			ws.write_comment( rowNum, col, formatContext(tc.sum_best_top_times.context), comment_style )
 			col += 1
 			
 			fit_sheet.write( rowNum, col, tc.sum_best_top_places.value )
-			ws.write_comment( rowNum, col, formatContext(tc.sum_best_top_places.context), {'width':256} )
+			ws.write_comment( rowNum, col, formatContext(tc.sum_best_top_places.context), comment_style )
 			col += 1
 			
 			fit_sheet.write( rowNum, col, tc.best_place.value )
-			ws.write_comment( rowNum, col, formatContext(tc.best_place.context), {'width':256} )
-			print '****', tc.best_place.context
+			ws.write_comment( rowNum, col, formatContext(tc.best_place.context), comment_style )
 			col += 1
 			rowNum +=1
 
@@ -133,17 +136,17 @@ def StageRaceGCToExcel( fname_excel, model ):
 			fit_sheet.write( rowNum, col, tgc[-1] ); col += 1
 			
 			fit_sheet.write( rowNum, col, tgc[0].value / (24.0*60.0*60.0), time_format )
-			ws.write_comment( rowNum, col, formatContextList(tgc[0].context), {'width':512} )
+			ws.write_comment( rowNum, col, formatContextList(tgc[0].context), wide_comment_style )
 			col += 1
 			
 			for i in xrange(1, len(tgc)-2):
 				if tgc[i].value:
 					fit_sheet.write( rowNum, col, tgc[i].value )
-					ws.write_comment( rowNum, col, u'\n'.join(tgc[i].context), {'width':128} )
+					ws.write_comment( rowNum, col, u'\n'.join(tgc[i].context), narrow_comment_style )
 				col += 1
 			
 			fit_sheet.write( rowNum, col, tgc[-2].value )
-			ws.write_comment( rowNum, col, formatContext(tgc[-2].context), {'width':256} )
+			ws.write_comment( rowNum, col, formatContext(tgc[-2].context), comment_style )
 			col += 1
 			
 			rowNum +=1
@@ -155,11 +158,13 @@ def StageRaceGCToExcel( fname_excel, model ):
 			rowNum +=1
 	
 	#---------------------------------------------------------------------------------------
-	for stage in model.stages:
-		writeIC(  wb.add_worksheet('Ind GC ' + stage.sheet_name), stage )
-		writeTeamClass( wb.add_worksheet('Team Class ' + stage.sheet_name), stage )
-
-	writeTeamGC( wb.add_worksheet('Team GC') )
+	if individualGC:
+		for stage in model.stages:
+			writeIC(  wb.add_worksheet(stage.sheet_name + '-GC'), stage )
+	else:
+		for stage in model.stages:
+			writeTeamClass( wb.add_worksheet(stage.sheet_name + '-TeamClass'), stage )
+		writeTeamGC( wb.add_worksheet('TeamGC') )
 	
 	wb.close()
 

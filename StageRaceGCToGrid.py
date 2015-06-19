@@ -203,8 +203,8 @@ def StageRaceGCToGrid( notebook ):
 	#------------------------------------------------------------------------------------
 	
 	for stage in model.stages:
-		notebook.AddPage( writeIC(stage), 'Ind GC ' + stage.sheet_name, )
-		notebook.AddPage( writeTeamClass(stage), 'Team Class ' + stage.sheet_name, )
+		notebook.AddPage( writeIC(stage), stage.sheet_name + '-GC', )
+		notebook.AddPage( writeTeamClass(stage), stage.sheet_name + '-TeamClass', )
 
-	notebook.AddPage( writeTeamGC(), 'Team GC', )
+	notebook.AddPage( writeTeamGC(), u'TeamGC', )
 
