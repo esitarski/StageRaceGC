@@ -3,6 +3,8 @@ import wx.lib.masked.numctrl as NC
 import  wx.lib.intctrl as IC
 from wx.lib.wordwrap import wordwrap
 import wx.lib.filebrowsebutton as filebrowse
+import wx.lib.agw.flatnotebook as flatnotebook
+
 import sys
 import os
 import re
@@ -87,7 +89,16 @@ class MainWin( wx.Frame ):
 		self.stageList.InsertColumn(1, "Bibs", wx.LIST_FORMAT_RIGHT)
 		self.stageList.InsertColumn(2, "Errors/Warnings", wx.LIST_FORMAT_RIGHT)
 		
-		self.notebook = wx.Notebook( self, style=wx.wx.NB_BOTTOM )
+		bookStyle = (
+			  flatnotebook.FNB_NO_X_BUTTON
+			| flatnotebook.FNB_FF2
+			| flatnotebook.FNB_NODRAG
+			| flatnotebook.FNB_DROPDOWN_TABS_LIST
+			| flatnotebook.FNB_NO_NAV_BUTTONS
+			| flatnotebook.FNB_BOTTOM
+		)
+		self.notebook = flatnotebook.FlatNotebook( self, 1000, agwStyle=bookStyle )
+		self.notebook.SetBackgroundColour( wx.WHITE )
 		
 		self.saveAsExcelButton = wx.Button( self, label=u'Save as Excel' )
 		self.saveAsExcelButton.Bind( wx.EVT_BUTTON, self.saveAsExcel )
