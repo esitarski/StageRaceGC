@@ -21,6 +21,7 @@ import Model
 import Version
 from StageRaceGCToExcel import StageRaceGCToExcel
 from StageRaceGCToGrid import StageRaceGCToGrid
+from MakeExampleExcel import MakeExampleExcel
 
 from Version import AppVerName
 
