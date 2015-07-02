@@ -53,8 +53,9 @@ def MakeExampleExcel():
 		fit_sheet.write( row, 4, get_license() )
 		fit_sheet.write( row, 5, teams[i//team_size] )
 		row += 1
-		
 
+	
+	
 	wb.close()
 	
 	return fname_excel
