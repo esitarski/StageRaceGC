@@ -5,7 +5,6 @@ import sys
 import six
 import math
 import datetime
-import iso3166
 from collections import defaultdict, namedtuple
 from ValueContext import ValueContext as VC
 from Excel import GetExcelReader
@@ -136,12 +135,17 @@ class Result( object ):
 		self.integerSeconds = int('{:.3f}'.format(self.time)[:-4])			
 		self.bonus = ExcelTimeToSeconds(self.bonus) or 0.0
 		
-		if isinstance( self.place, six.string_types ):
+		if not self.place:
+			self.place = self.row - 1
+		else:
 			try:
 				self.place = int( self.place )
-			except ValueError:
+			except:
 				pass
-				
+		
+		if not isinstance( self.place, int ):
+			self.place = 'AB'
+		
 		try:
 			self.row = int(self.row)
 		except:
@@ -436,6 +440,12 @@ class Model( object):
 			stage.team_classification.sort()
 		
 	def getTeamGC( self ):
+		self.team_gc = []
+		self.unranked_teams = []
+		
+		if not self.stages:
+			return
+		
 		self.getTeamStageClassifications()
 		
 		total_teams = len( self.all_teams )

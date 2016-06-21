@@ -43,6 +43,7 @@ import os
 import re
 import sys
 import math
+import subprocess
 import datetime
 import platform
 import traceback
@@ -115,8 +116,7 @@ except:
 if os.path.basename(dirName) == 'library.zip':
 	dirName = os.path.dirname(dirName)
 imageFolder = os.path.join(dirName, 'images')
-htmlFolder = os.path.join(dirName, 'html')
-htmlDocFolder = os.path.join(dirName, 'htmldoc')
+htmlDocFolder = os.path.join(dirName, 'StageRaceGCHtmlDoc')
 
 PlatformName = platform.system()
 def writeLog( message ):
@@ -156,6 +156,10 @@ def logException( e, exc_info ):
 	writeLog( '**** End Exception ****' )
 
 def fieldToHeader( f, multi_line=False ):
+	if f == u'uci_code':
+		return _('UCI Code')
+	if f.endswith(u'_name'):
+		f = f[:-5]
 	f = f.replace(u'_', u' ').replace(u'uci', u'UCI')
 	s = u' '.join( w[0].upper() + w[1:] for w in f.split() )
 	s = s.replace(u' With ', u' with ').replace(u' In ', u' in ')
@@ -286,3 +290,11 @@ def getImageFolder():	return imageFolder
 def getHtmlFolder():	return htmlFolder
 def getHtmlDocFolder():	return htmlDocFolder
 
+def LaunchApplication( fname ):
+	if os.name is 'nt':
+		subprocess.call(('cmd', '/C', 'start', '', fname))
+	elif sys.platform.startswith('darwin'):
+		subprocess.call(('open', fname))
+	else:
+		subprocess.call( ('xdg-open', fname) )
+	

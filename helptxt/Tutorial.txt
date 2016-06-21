@@ -1,0 +1,134 @@
+[TOC]
+
+# Introduction
+
+__StageRaceGC__ scores stage races for Individual and Team GC using UCI rules.
+All tie-breaking rules are applied, and all details are applied to compute the the Team GC.
+
+It takes an Excel sheet with the Registration and Stage results as input and can produce another Excel sheet with the current GC, Team GC, and shows its work for all stages.
+
+StageRaceGC always scores the race "from first principles", for example, if you have a 5 stage race, and a change is made to stage 2, this change is propagated throughout all subsequent stages.
+
+The Input Excel sheet must have the format described in the Input section.
+
+# Tutorial
+
+StageRaceGC creates an Excel sheet showing a sample race with results.  Use this to get an idea about how to setup your own race.
+
+# Input
+
+__StageRaceGC__ accepts input in an Excel sheet.  The sheet must be organized as follows:
+
+* There must be one __Registration__ sheet.  It is assumed that only one category is contained in the sheet.
+* There can be one or more __XXX-RR__ sheets,  where XXX is the name of the stage, and RR stands for __Road Race__.
+* There can be one or more __XXX-ITT__ sheets, where XXX is the name of the stage, and ITT stands for __Individual Time Trial__.
+* There can be one or more __XXX-TTT__ sheets, where XXX is the name of the stage, and TTT stands for __Team Time Trial__.
+
+__StageRaceGC__ requires that the input stages be in sequence from left-to-right.
+
+## Registration Sheet
+
+The Registration sheet is the main sheet for rider data.  The following header columns are recognized in any order:
+
+Column|Description
+:-----|:----------
+Bib|The rider's number
+First Name|Optional.  Rider's First name
+Last Name|Optional.  Rider's Last name
+Name|Optional.  Rider's name, first and last.  Use this field if you don't have the first and last name split out.
+Team|Rider's team
+UCI Code|Rider's UCI code
+License|Rider's local Licence code
+
+All rider data will be referenced from this sheet, even if it is restated on the results sheets.
+
+## XXX-RR Sheet(s)
+
+These sheets contain the data for the results of each __Road Race__ (RR) stage.  The following header columns are recognized in any order:
+
+Column|Description
+:-----|:----------
+Bib (or BibNum)|The rider's number
+Time|The rider's actual finish time, not including the time bonus.  Use Excel input format __hh:mm:ss__.  Fractions of a second are ignored.
+Place (or Rank or Pos)|Optional.  The rider's finish position.  If there is no __Place__ column, the finish order will be assumed to be from top to bottom.  This field will also accept __AB__ (Did Not Finish/Did Not Start) and __DQ__ (Disqualified).
+Bonus|Optional.  Time bonus for this rider.
+
+Note: __Place__ and __Time__ are treated as separate pieces of information that may or may not correspond to each other.  For example, if a rider crashes during the last 3km, s/he gets the time of the riders s/he was riding with, but the place when s/he crosses the line.
+
+AB and DQ are interpreted as applying for all future stages, and a rider marked as AB or DQ will no longer be included in the GC from that stage onward.  This also has implications for the Team GC if the number of team members drops below 3.
+
+Make sure that AB and DQ riders appear at the end of the list.
+
+All other column headers are ignored.  Rider information is always retrieved from the Registration page.
+
+## XXX-ITT Sheet(s)
+
+These sheets contain the data for the results of each __Individual Time Trial__ (ITT) stage.  The following header columns are recognized in any order:
+
+Column|Description
+:-----|:----------
+Bib (or BibNum)|The rider's number
+Time|The rider's finish time including any time penalties.  Use Excel input format __hh:mm:ss.000__ to record fractions of a second.
+Bonus|Optional.  Time bonus for the rider.
+Place (or Rank or Pos)|Optional.  Used to indicate __AB__ (Did not finish) and __DQ__ (Disqualified).  Other values are ignored.
+
+Make sure that AB and DQ rider's appear at the end of the list.
+AB and DQ are interpreted as applying for all future stages, and a rider marked as AB or DQ will no longer be included in the GC from that stage onward.  This also has implications for the Team GC if the number of team members drops below 3.
+
+All other column headers are ignored.  Rider information is always retrieved from the Registration page.
+
+## XXX-TTT Sheet(s)
+
+These sheets contain the data for the results of each __Team Time Trial__ (TTT) stage.  The following header columns are recognized in any order:
+
+Column|Description
+:-----|:----------
+Bib (or BibNum)|The rider's number
+Time|The rider's finish time including any time penalties.  Use Excel input format __hh:mm:ss.000__ to record fractions of a second.
+Bonus|Optional.  Time bonus for the rider.
+Place (or Rank or Pos)|Optional.  Used to indicate __AB__ (Did not finish) and __DQ__ (Disqualified).  Other values are ignored.
+
+Make sure that AB and DQ riders are at the end of the list.
+AB and DQ are interpreted as applying for all future stages, and a rider marked as AB or DQ will no longer be included in the GC from that stage onward.  This also has implications for the Team GC if the number of team members drops below 3.
+
+All other column headers are ignored.  Rider information is always retrieved from the Registration page.
+
+# Main Screen
+The Main Screen is divided into three major areas:
+
+1. Excel input.
+1. Read status.
+1. Output.
+
+## Excel Input
+
+Specify your input Excel sheet here.  It must be in the __Input__ format described above.
+If you change your Excel sheet, press the __Update__ button to get __StageRaceGC__ to recompute the GC.
+
+## Read Status
+
+Shows any problems with reading the sheets.  It is important to investigate any issues reported here.
+
+## Output
+
+Shows the __Individual GC__ and __Team GC__.  Also shows the intermediate results from each stage.
+
+The full output can be exported to an Excel sheet.
+
+Of course, the Individual GC and the standings after the last stage are identical.
+
+# Notes:
+
+## Team Time Trials
+
+It is up to you to give all team members the correct time of the team.  StageRaceGC does not know how many riders are on a team and which wheel "counts".
+
+## Team GC and Minimum Team Size
+
+__StageRaceGC__ will no longer compute the Team GC when the number of team members drops below 3.  This team will no longer appear on the Team standings.
+
+## ABs and DQs
+
+__StageRaceGC__ treats AB and DQ riders as leaving the competition.  These riders will not be considered in the GC or team GC even if they appear again in a results in a later stage.
+
+Make sure that riders who are continuing have an assigned Time (and Place) as required.

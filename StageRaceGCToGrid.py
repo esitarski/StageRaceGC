@@ -96,7 +96,7 @@ def StageRaceGCToGrid( notebook ):
 			grid.SetCellValue( rowNum, col, unicode(rider.team) ); col += 1
 			
 			if 'uci_code' in riderFields:
-				grid.SetCellValue( rowNum, col, unicode(rider.team) ); col += 1
+				grid.SetCellValue( rowNum, col, unicode(rider.uci_code) ); col += 1
 			if 'license' in riderFields:
 				grid.SetCellValue( rowNum, col, unicode(rider.license) ); col += 1
 			
@@ -108,6 +108,7 @@ def StageRaceGCToGrid( notebook ):
 			rowNum +=1
 			
 		grid.GetGridWindow().Bind(wx.EVT_MOTION, getCommentCallback(grid))
+		grid.AutoSize()
 		return grid
 	
 	#---------------------------------------------------------------------------------------
@@ -147,6 +148,7 @@ def StageRaceGCToGrid( notebook ):
 			rowNum +=1
 			
 		grid.GetGridWindow().Bind(wx.EVT_MOTION, getCommentCallback(grid))
+		grid.AutoSize()
 		return grid
 
 	#---------------------------------------------------------------------------------------
@@ -198,13 +200,14 @@ def StageRaceGCToGrid( notebook ):
 			rowNum +=1
 	
 		grid.GetGridWindow().Bind(wx.EVT_MOTION, getCommentCallback(grid))
+		grid.AutoSize()
 		return grid
 	
 	#------------------------------------------------------------------------------------
 	
-	for stage in model.stages:
-		notebook.AddPage( writeIC(stage), stage.sheet_name + '-GC', )
-		notebook.AddPage( writeTeamClass(stage), stage.sheet_name + '-TeamClass', )
-
-	notebook.AddPage( writeTeamGC(), u'TeamGC', )
-
+	if model.stages:
+		notebook.AddPage( writeIC(model.stages[-1]), u'IndividualGC' )
+		notebook.AddPage( writeTeamGC(), u'TeamGC' )
+		for stage in reversed(model.stages):
+			notebook.AddPage( writeIC(stage), stage.sheet_name + '-GC' )
+			notebook.AddPage( writeTeamClass(stage), stage.sheet_name + '-TeamClass' )

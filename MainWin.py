@@ -11,7 +11,6 @@ import re
 import datetime
 import traceback
 import xlwt
-import webbrowser
 from optparse import OptionParser
 from roundbutton import RoundButton
 
@@ -135,8 +134,8 @@ class MainWin( wx.Frame ):
 			)
 		self.fileBrowse.SetValue( fname_excel )
 		self.doUpdate( event )
-		webbrowser.open( fname_excel, new = 2, autoraise = True )
-		webbrowser.open( os.path.join(Utils.getHtmlDocFolder(), 'Tutorial.html'), new = 2, autoraise = True )
+		Utils.LaunchApplication( fname_excel )
+		Utils.LaunchApplication( os.path.join(Utils.getHtmlDocFolder(), 'Tutorial.html') )
 	
 	def doChangeCallback( self, event ):
 		fname = event.GetString()
@@ -224,41 +223,36 @@ class MainWin( wx.Frame ):
 		
 		self.lastUpdateTime = datetime.datetime.now()
 	
-	def getOutputExcelName( self, individualGC=True ):
+	def getOutputExcelName( self ):
 		fname_base, fname_suffix = os.path.splitext(self.fname)
-		fname_excel = '{}-{}{}'.format(fname_base, 'GC' if individualGC else 'Team', '.xlsx')
+		fname_excel = '{}-{}{}'.format(fname_base, 'GC', '.xlsx')
 		return fname_excel
 	
 	def saveAsExcel( self, event ):
-		fname_success = []
-		for individualGC in [True, False]:
-			fname_excel = self.getOutputExcelName( individualGC )
-			if os.path.isfile( fname_excel ):
-				if not Utils.MessageOKCancel(
-							self,
-							u'"{}"\n\n{}'.format(fname_excel, _('File exists.  Replace?')),
-							_('Output Excel File Exists'),
-						):
-					continue
+		fname_excel = self.getOutputExcelName()
+		if os.path.isfile( fname_excel ):
+			if not Utils.MessageOKCancel(
+						self,
+						u'"{}"\n\n{}'.format(fname_excel, _('File exists.  Replace?')),
+						_('Output Excel File Exists'),
+					):
+				return
+		
+		try:
+			StageRaceGCToExcel( fname_excel, Model.model )
+		except Exception as e:
+			Utils.MessageOK( self,
+				u'{}: "{}"\n\n{}\n\n"{}"'.format(
+						_("Write Failed"),
+						e,
+						_("If you have this file open, close it and try again."),
+						fname_excel),
+				_("Excel Write Failed."),
+				iconMask = wx.ICON_ERROR,
+			)
+			return
 			
-			try:
-				StageRaceGCToExcel( fname_excel, Model.model, individualGC )
-			except Exception as e:
-				Utils.MessageOK( self,
-					u'{}: "{}"\n\n{}\n\n"{}"'.format(
-							_("Write Failed"),
-							e,
-							_("If you have this file open, close it and try again."),
-							fname_excel),
-					_("Excel Write Failed."),
-					iconMask = wx.ICON_ERROR,
-				)
-				continue
-				
-			fname_success.append( fname_excel )
-			
-		for fname_excel in fname_success:
-			webbrowser.open( fname_excel, new = 2, autoraise = True )
+		Utils.LaunchApplication( fname_excel )
 
 # Set log file location.
 dataDir = ''
