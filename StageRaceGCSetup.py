@@ -132,5 +132,7 @@ shutil.copy( newZipName, googleDrive  )
 cmd = 'python virustotal_submit.py "{}"'.format(os.path.abspath(newExeName))
 print cmd
 
+os.chdir( '..' )
+
 subprocess.call( cmd, shell=True )
 shutil.copy( 'virustotal.html', os.path.join(googleDrive, 'virustotal_v' + vNum + '.html') )
