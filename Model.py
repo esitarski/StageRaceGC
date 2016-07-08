@@ -24,7 +24,8 @@ class Rider( object ):
 	])
 
 	def __init__( self, **kwargs ):
-		
+		rowNum = kwargs.pop( 'rowNum', None )
+				
 		if 'name' in kwargs:
 			name = kwargs['name'].replace('*','').strip()
 			
@@ -67,7 +68,7 @@ class Rider( object ):
 					i += 1
 				kwargs['first_name'] = name[:j]
 				kwargs['last_name'] = name[j:]
-			
+		
 		for f in self.Fields:
 			setattr( self, f, kwargs.get(f, None) )
 			
@@ -89,7 +90,7 @@ class Rider( object ):
 		if self.uci_code:
 			self.uci_code = unicode(self.uci_code).strip()
 			if len(self.uci_code) != 11:
-				raise ValueError( u'invalid uci_code: {}'.format(self.uci_code) )
+				raise ValueError( u'Row {}: invalid uci_code: {}'.format(rowNum, self.uci_code) )
 				
 		assert self.bib is not None, 'Missing Bib'
 				
@@ -118,6 +119,7 @@ class Result( object ):
 		'bib',
 		'time',
 		'bonus',
+		'penalty',
 		'place',
 		'row'
 	)
@@ -134,6 +136,8 @@ class Result( object ):
 		self.time = ExcelTimeToSeconds(self.time) or 0.0
 		self.integerSeconds = int('{:.3f}'.format(self.time)[:-4])			
 		self.bonus = ExcelTimeToSeconds(self.bonus) or 0.0
+		self.penalty = ExcelTimeToSeconds(self.penalty) or 0.0
+		self.time += self.penalty	# Always include the time penalty.
 		
 		if not self.place:
 			self.place = self.row - 1
@@ -211,7 +215,8 @@ class Registration( object ):
 	def read( self, reader ):
 		self.reset()
 		content, self.errors = readSheet( reader, self.sheet_name, ['name'] + list(Rider.Fields) )
-		for row in content:
+		for rowNum, row in enumerate(content, 1):
+			row['rowNum'] = rowNum
 			try:
 				rider = Rider( **row )
 			except Exception as e:
@@ -254,7 +259,7 @@ class Stage( object ):
 		
 	def addRow( self, row ):
 		if 'bib' not in row:
-			self.errors.append( '{}: Row {}: Missing Bib'.format(self.sheet_name, row['row']) )
+			self.errors.append( 'Row {}: Missing Bib Column'.format(row['row']) )
 			return
 		try:
 			result = Result(**row)
@@ -323,19 +328,19 @@ class Model( object):
 			callbackfunc( self.registration, self.stages )			
 		
 		for sheet_name in reader.sheet_names():
-			if sheet_name.endswith('-ITT'):
+			if sheet_name.endswith('-RR'):
+				stage = StageRR( sheet_name )
+			elif sheet_name.endswith('-ITT'):
 				stage = StageITT( sheet_name )
 			elif sheet_name.endswith('-TTT'):
 				stage = StageTTT( sheet_name )
-			elif sheet_name.endswith('-RR'):
-				stage = StageRR( sheet_name )
 			else:
 				continue
 			
 			errors = stage.read( reader )
 			for r in stage.results:
 				if r.bib not in self.registration.bibToRider:
-					errors.append( '{}: Row {}: Unknown Bib: {}'. format(stage.sheet_name, r.row, r.bib) )
+					errors.append( 'Row {}: Unknown Bib: {}'. format(r.row, r.bib) )
 			self.stages.append( stage )
 			
 			if callbackfunc:
@@ -418,11 +423,15 @@ class Model( object):
 			top_count = {team: 0 for team in self.all_teams}
 			
 			for r in stage.results:
+				rider = self.registration.bibToRider.get(r.bib, None)
+				if not rider:
+					continue
 				if not isinstance(r.place, int):
 					self.retired.add( r.bib )
 				if r.bib in self.retired:
 					continue
-				team = self.registration.bibToRider[r.bib].team
+				
+				team = rider.team
 				if top_count[team] == 3:
 					continue
 					
@@ -474,7 +483,10 @@ class Model( object):
 		
 		best_rider_gc = {}
 		for place, c in enumerate(self.stages[-1].individual_gc, 1):
-			team = self.registration.bibToRider[c.bib].team
+			rider = self.registration.bibToRider.get( c.bib, None )
+			if not rider:
+				continue
+			team = rider.team
 			if team not in best_rider_gc:
 				best_rider_gc[team] = VC(place, (place, c.bib))
 		

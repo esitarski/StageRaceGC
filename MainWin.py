@@ -4,6 +4,7 @@ import  wx.lib.intctrl as IC
 from wx.lib.wordwrap import wordwrap
 import wx.lib.filebrowsebutton as filebrowse
 import wx.lib.agw.flatnotebook as flatnotebook
+import wx.lib.mixins.listctrl as listmix
 
 import sys
 import os
@@ -28,6 +29,11 @@ def ShowSplashScreen():
 	bitmap = wx.Bitmap( os.path.join(Utils.getImageFolder(), 'StageRaceGC.png'), wx.BITMAP_TYPE_PNG )
 	showSeconds = 2.5
 	frame = wx.SplashScreen(bitmap, wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT, int(showSeconds*1000), None)
+
+class ListMixCtrl( wx.ListCtrl, listmix.ListCtrlAutoWidthMixin ):
+	def __init__( self, parent, ID=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=0 ):
+		wx.ListCtrl.__init__( self, parent, ID, pos, size, style )
+		listmix.ListCtrlAutoWidthMixin.__init__( self )
 
 class MainWin( wx.Frame ):
 	def __init__( self, parent, id = wx.ID_ANY, title='', size=(200,200) ):
@@ -84,10 +90,11 @@ class MainWin( wx.Frame ):
 
 		inputBoxSizer.Add( horizontalControlSizer, flag=wx.EXPAND )
 		
-		self.stageList = wx.ListCtrl( self, style=wx.LC_REPORT, size=(-1,160) )
+		self.stageList = ListMixCtrl( self, style=wx.LC_REPORT, size=(-1,160) )
 		self.stageList.InsertColumn(0, "Sheet")
 		self.stageList.InsertColumn(1, "Bibs", wx.LIST_FORMAT_RIGHT)
-		self.stageList.InsertColumn(2, "Errors/Warnings", wx.LIST_FORMAT_RIGHT)
+		self.stageList.InsertColumn(2, "Errors/Warnings")
+		self.stageList.setResizeColumn( 2 )
 		
 		bookStyle = (
 			  flatnotebook.FNB_NO_X_BUTTON
@@ -164,7 +171,10 @@ class MainWin( wx.Frame ):
 		def insert_stage_info( stage ):
 			idx = self.stageList.InsertStringItem( sys.maxint, stage.sheet_name )
 			self.stageList.SetStringItem( idx, 1, unicode(len(stage)) )
-			self.stageList.SetStringItem( idx, 2, unicode(len(stage.errors)) )
+			if stage.errors:
+				self.stageList.SetStringItem( idx, 2, u'{}: {}'.format(len(stage.errors), u'  '.join(u'[{}]'.format(e) for e in stage.errors)) )
+			else:
+				self.stageList.SetStringItem( idx, 2, u'                                                                ' )
 		
 		insert_stage_info( registration )
 		for stage in stages:
@@ -173,7 +183,6 @@ class MainWin( wx.Frame ):
 		for col in xrange(3):
 			self.stageList.SetColumnWidth( col, wx.LIST_AUTOSIZE )
 		self.stageList.SetColumnWidth( 1, 52 )
-		self.stageList.SetColumnWidth( 2, 120 )
 		self.stageList.Refresh()
 
 	def callbackUpdate( self, message ):

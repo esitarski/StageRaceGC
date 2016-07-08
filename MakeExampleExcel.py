@@ -57,7 +57,8 @@ def MakeExampleExcel():
 
 	stageCount = 5
 	for stage in xrange(stageCount):
-		if stage == 3-1:
+		isTT = (stage == 3-1)
+		if isTT:
 			tf = high_precision_time_format
 			race_time = 60*60
 			ws = wb.add_worksheet('Stage {}-ITT'.format(stage+1))
@@ -66,7 +67,11 @@ def MakeExampleExcel():
 			race_time = 4*60*60
 			ws = wb.add_worksheet('Stage {}-RR'.format(stage+1))
 		fit_sheet = FitSheetWrapper( ws )
-		fields = ['bib', 'time', 'place']
+		
+		fields = ['bib', 'time', 'place', 'penalty', 'bonus']
+		if isTT:
+			fields.pop()
+		
 		row = 0
 		for c, field in enumerate(fields):
 			fit_sheet.write( row, c, make_title(field), bold_format )

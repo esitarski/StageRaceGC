@@ -44,7 +44,7 @@ All rider data will be referenced from this sheet, even if it is restated on the
 
 ## XXX-RR Sheet(s)
 
-These sheets contain the data for the results of each __Road Race__ (RR) stage.  The following header columns are recognized in any order:
+These sheets contain the data for the results of each __Road Race__ (RR) stage.  All Road Race sheets in the spreadsheet must end with __-RR__.  The following header columns are recognized in any order:
 
 Column|Description
 :-----|:----------
@@ -63,7 +63,7 @@ All other column headers are ignored.  Rider information is always retrieved fro
 
 ## XXX-ITT Sheet(s)
 
-These sheets contain the data for the results of each __Individual Time Trial__ (ITT) stage.  The following header columns are recognized in any order:
+These sheets contain the data for the results of each __Individual Time Trial__ (ITT) stage.   All Individual Time Trial sheets in the spreadsheet must end with __-ITT__.  The following header columns are recognized in any order:
 
 Column|Description
 :-----|:----------
@@ -79,7 +79,7 @@ All other column headers are ignored.  Rider information is always retrieved fro
 
 ## XXX-TTT Sheet(s)
 
-These sheets contain the data for the results of each __Team Time Trial__ (TTT) stage.  The following header columns are recognized in any order:
+These sheets contain the data for the results of each __Team Time Trial__ (TTT) stage.  All Team Time Trial sheets in the spreadsheet must end with __-TTT__.  The following header columns are recognized in any order:
 
 Column|Description
 :-----|:----------

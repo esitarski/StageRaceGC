@@ -60,7 +60,10 @@ def StageRaceGCToExcel( fname_excel, model ):
 		rowNum +=1
 		
 		for place, r in enumerate(stage.individual_gc, 1):
-			rider = model.registration.bibToRider[r.bib]
+			try:
+				rider = model.registration.bibToRider[r.bib]
+			except KeyError:
+				continue
 		
 			col = 0
 			if r.retired_stage > 0:
