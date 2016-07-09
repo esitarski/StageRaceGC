@@ -126,19 +126,28 @@ class Result( object ):
 		'row',
 		'kom1', 'kom2', 'kom3', 'kom4', 'kom5', 'kom6', 'kom7', 'kom8',
 		'sprint1', 'sprint2', 'sprint3', 'sprint4', 'sprint5', 'sprint6', 'sprint7', 'sprint8',
+		'stagesprint',
 	)
 	NumericFields = set([
 		'bib', 'row', 'place', 'time', 'bonus', 'penalty',
-		'kom1', 'kom2', 'kom3', 'kom4', 'kom5', 'kom6', 'kom7', 'kom8',
-		'sprint1', 'sprint2', 'sprint3', 'sprint4', 'sprint5', 'sprint6', 'sprint7', 'sprint8',
+		'kom1', 'kom2', 'kom3', 'kom4', 'kom5', 'kom6', 'kom7', 'kom8', 'kom9',
+		'sprint1', 'sprint2', 'sprint3', 'sprint4', 'sprint5', 'sprint6', 'sprint7', 'sprint8', 'sprint9',
+		'stagesprint',
 	])
 	
 	def __init__( self, **kwargs ):
 		self.kom = []
 		self.sprint = []
 		
+		print kwargs.keys()
+		
+		try:
+			self.stage_sprint = int(kwargs.pop('stagesprint', '0'))
+		except:
+			self.stage_sprint = 0
+		
 		for f in self.Fields:
-			if f.startswith('kom') or f.startswith('sprint'):
+			if f.startswith('kom'):
 				break
 			setattr( self, f, kwargs.get(f, None) )
 		
@@ -158,7 +167,7 @@ class Result( object ):
 				setListValue( self.kom, k, v )
 			elif k.startswith('sprint'):
 				setListValue( self.sprint, k, v )
-				
+		
 		assert self.bib is not None, "Missing Bib"
 		
 		self.time = ExcelTimeToSeconds(self.time) or 0.0
@@ -188,8 +197,9 @@ class Result( object ):
 			if not a.startswith('sprint') and not a.startswith('kom')]
 		kom = 'kom=[{}]'.format(','.join('{}'.format(v) for v in self.kom))
 		sprint = 'sprint=[{}]'.format(','.join('{}'.format(v) for v in self.sprint))
-		return u'Result({}, {}, {})'.format( u','.join( u'{}'.format(getattr(self, a)) for a in self.Fields ),
-			kom, sprint )
+		stage_sprint = 'stage_sprint={}'.format( self.stage_sprint )
+		return u'Result({}, {}, {}, {})'.format( u','.join( u'{}'.format(getattr(self, a)) for a in self.Fields ),
+			kom, sprint, stage_sprint )
 
 reNonAlphaNum = re.compile( '[^A-Z0-9]+' )
 header_sub = {
@@ -672,15 +682,22 @@ class Model( object):
 			if not isinstance(stage, StageRR):
 				continue
 			try:
-				bibStageWins[next(r for r in stage.results if r.place == 1).bib] += 1
 				stage_sprint_count = max(len(r.sprint) for r in stage.results)
 			except:
 				continue
+			stage_sprint_points = 0
+			stage_sprint_winner = 0
 			sprint_points = [0] * stage_sprint_count
 			sprint_winner = [0] * stage_sprint_count
 			for result in stage.results:
 				if result.bib in retired:
 					continue
+				
+				bibSprintTotal[result.bib] += result.stage_sprint
+				if result.stage_sprint > stage_sprint_points:
+					stage_sprint_points = result.stage_sprint
+					stage_sprint_winner = result.bib
+					
 				for i, v in enumerate(result.sprint):
 					bibSprintTotal[result.bib] += v
 					if v > sprint_points[i]:
@@ -689,6 +706,8 @@ class Model( object):
 			for bib in sprint_winner:
 				if bib:
 					bibSprintWins[bib] += 1
+			if stage_sprint_winner:
+				bibStageWins[stage_sprint_winner] += 1
 		
 		sprint = [[bibSprintTotal[bib], bibStageWins[bib], bibSprintWins[bib], lastStageGC[bib], bib]
 			for bib in bibSprintTotal.iterkeys()]

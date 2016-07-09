@@ -55,7 +55,8 @@ Time|The rider's actual finish time, not including the time bonus or time penalt
 Place (or Rank or Pos)|Optional.  The rider's finish position.  If there is no __Place__ column, the finish order will be assumed to be from top to bottom.  This field will also accept __AB__ (Did Not Finish/Did Not Start) and __DQ__ (Disqualified).
 Bonus|Optional.  Time bonus for this rider.  Suggest Excel input format __mm:ss__.
 Penalty|Optional.  Time penalty.  The penalty is added to the rider's time for GC and Team GC calculation.  Suggest Excel input format __mm:ss__.
-Sprint1, Sprint2, Sprint3..Sprint8|Optional.  Sprint points for the sprinter's jersey.  Each stage can have up to 8 Sprint point opportunities, one in each column.
+Sprint1, Sprint2, Sprint3..Sprint8|Optional.  Intermediate sprint points for the sprinter's jersey.  Each stage can have up to 8 Sprint point opportunities, one in each column.
+Stage Sprint|Optional.  Indicates sprint points for the end of the stage.  There can only be one of these per stage.  The stage sprint must be indicated as ties in sprinters points are first broken with the number of stage wins, then number of intermediate sprint wins.
 KOM1, KOM2, KOM3..KOM8|Optional.  KOM (King of the Mountain) points for the climbers jersey.  Each stage can have up to 8 Sprint point opportunities, one in each column.  The category of the climb (one of 4C, 3C, 2C, 1C ahd HC) can also be included in the column name.  For example, "KOM1 2C", "KOM3 HC" are recognized.  This is required to break ties on KOM points where the number of first places in the highest category climbs is considered first, then if still a tie, the number of first places on the next inferior climb is considered, etc.  The winner of the KOM is considered to be the rider awarded the greatest number of points for it.
 
 ### Notes:

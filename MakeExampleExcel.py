@@ -95,7 +95,7 @@ def MakeExampleExcel():
 			ws = wb.add_worksheet('Stage {}-RR'.format(stage+1))
 		fit_sheet = FitSheetWrapper( ws )
 		
-		fields = ['bib', 'time', 'place', 'penalty', 'bonus', 'kom 1 1C', 'kom 2 HC', 'sprint 1', 'sprint 2']
+		fields = ['bib', 'time', 'place', 'penalty', 'bonus', 'kom 1 1C', 'kom 2 HC', 'sprint 1', 'stage sprint']
 		if isTT:
 			fields = fields[:5]
 		
@@ -119,7 +119,7 @@ def MakeExampleExcel():
 			for c in xrange(5,9):
 				positions = [x for x in xrange(len(bibs))]
 				random.shuffle( positions )
-				if fields[c] == 'sprint 2':
+				if fields[c] == 'stage sprint':
 					points = stage_points[stage%len(stage_points)]
 					positions.sort()
 				elif fields[c] == 'sprint 1':
