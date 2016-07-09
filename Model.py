@@ -139,8 +139,6 @@ class Result( object ):
 		self.kom = []
 		self.sprint = []
 		
-		print kwargs.keys()
-		
 		try:
 			self.stage_sprint = int(kwargs.pop('stagesprint', '0'))
 		except:
