@@ -10,6 +10,8 @@ from ValueContext import ValueContext as VC
 from Excel import GetExcelReader
 import Utils
 
+ClimbCategoryLowest = 4
+
 class Rider( object ):
 	Fields = (
 		'bib',
@@ -24,8 +26,6 @@ class Rider( object ):
 	])
 
 	def __init__( self, **kwargs ):
-		rowNum = kwargs.pop( 'rowNum', None )
-				
 		if 'name' in kwargs:
 			name = kwargs['name'].replace('*','').strip()
 			
@@ -90,7 +90,7 @@ class Rider( object ):
 		if self.uci_code:
 			self.uci_code = unicode(self.uci_code).strip()
 			if len(self.uci_code) != 11:
-				raise ValueError( u'Row {}: invalid uci_code: {}'.format(rowNum, self.uci_code) )
+				raise ValueError( u'Row {}: invalid uci_code: {}'.format(self.row, self.uci_code) )
 				
 		assert self.bib is not None, 'Missing Bib'
 				
@@ -113,7 +113,9 @@ def ExcelTimeToSeconds( t ):
 			# Assume an Excel float number in days.
 			t *= 24.0*60.0*60.0
 	return t
-
+	
+reNonDigit = re.compile( '[^0-9]' )
+	
 class Result( object ):
 	Fields = (
 		'bib',
@@ -121,16 +123,42 @@ class Result( object ):
 		'bonus',
 		'penalty',
 		'place',
-		'row'
+		'row',
+		'kom1', 'kom2', 'kom3', 'kom4', 'kom5', 'kom6', 'kom7', 'kom8',
+		'sprint1', 'sprint2', 'sprint3', 'sprint4', 'sprint5', 'sprint6', 'sprint7', 'sprint8',
 	)
 	NumericFields = set([
-		'bib', 'row', 'place', 'time',
+		'bib', 'row', 'place', 'time', 'bonus', 'penalty',
+		'kom1', 'kom2', 'kom3', 'kom4', 'kom5', 'kom6', 'kom7', 'kom8',
+		'sprint1', 'sprint2', 'sprint3', 'sprint4', 'sprint5', 'sprint6', 'sprint7', 'sprint8',
 	])
 	
 	def __init__( self, **kwargs ):
+		self.kom = []
+		self.sprint = []
+		
 		for f in self.Fields:
+			if f.startswith('kom') or f.startswith('sprint'):
+				break
 			setattr( self, f, kwargs.get(f, None) )
-			
+		
+		def setListValue( a, k, v ):
+			try:
+				i = int(reNonDigit.sub('', k))
+				v = int(v)
+			except:
+				return
+			if i >= 0:
+				if len(a) < i:
+					a.extend( [0] * (i-len(a)) )
+				a[i-1] = v
+		
+		for k, v in kwargs.iteritems():
+			if k.startswith('kom'):
+				setListValue( self.kom, k, v )
+			elif k.startswith('sprint'):
+				setListValue( self.sprint, k, v )
+				
 		assert self.bib is not None, "Missing Bib"
 		
 		self.time = ExcelTimeToSeconds(self.time) or 0.0
@@ -153,25 +181,31 @@ class Result( object ):
 		try:
 			self.row = int(self.row)
 		except:
-			pass
-			
+			self.row = 0
+		
 	def __repr__( self ):
-		return u'Result({})'.format( u','.join( u'{}'.format(getattr(self, a)) for a in self.Fields ) )
+		values = [u'{}'.format(getattr(self, a)) for a in self.Fields
+			if not a.startswith('sprint') and not a.startswith('kom')]
+		kom = 'kom=[{}]'.format(','.join('{}'.format(v) for v in self.kom))
+		sprint = 'sprint=[{}]'.format(','.join('{}'.format(v) for v in self.sprint))
+		return u'Result({}, {}, {})'.format( u','.join( u'{}'.format(getattr(self, a)) for a in self.Fields ),
+			kom, sprint )
 
-reAlpha = re.compile( '[^A-Z]+' )
+reNonAlphaNum = re.compile( '[^A-Z0-9]+' )
 header_sub = {
 	u'RANK':	u'PLACE',
 	u'POS':		u'PLACE',
 	u'BIBNUM':	u'BIB',
 }
 def scrub_header( h ):
-	h = reAlpha.sub( '', Utils.removeDiacritic(unicode(h)).upper() )
+	h = reNonAlphaNum.sub( '', Utils.removeDiacritic(unicode(h)).upper() )
 	return header_sub.get(h, h)
 
 def readSheet( reader, sheet_name, header_fields ):
 	header_map = {}
 	content = []
 	errors = []
+	climb_categories = []
 	for row_number, row in enumerate(reader.iter_list(sheet_name)):
 		if not row:
 			continue
@@ -180,7 +214,21 @@ def readSheet( reader, sheet_name, header_fields ):
 		if not header_map:
 			for c, v in enumerate(row):
 				rv = scrub_header( v )
-				
+				if rv.startswith('KOM'):
+					if rv.endswith('C'):
+						category = rv[-2]
+						category = int(category) if category.isdigit() else 0
+						rv = rv[:-2]
+					else:
+						category = ClimbCategoryLowest
+					try:
+						i = int(reNonDigit.sub('', rv))
+						if len(climb_categories) < i:
+							climb_categories.extend( [ClimbCategoryLowest] * (i - len(climb_categories)) )
+						climb_categories[i-1] = category
+					except:
+						pass
+						
 				for h in header_fields:
 					hv = scrub_header( h )
 					if rv == hv:
@@ -200,7 +248,7 @@ def readSheet( reader, sheet_name, header_fields ):
 		
 		content.append( row_fields )
 	
-	return content, errors
+	return content, climb_categories, errors
 
 class Registration( object ):
 	def __init__( self, sheet_name = 'Registration' ):
@@ -214,9 +262,8 @@ class Registration( object ):
 	
 	def read( self, reader ):
 		self.reset()
-		content, self.errors = readSheet( reader, self.sheet_name, ['name'] + list(Rider.Fields) )
-		for rowNum, row in enumerate(content, 1):
-			row['rowNum'] = rowNum
+		content, _, self.errors = readSheet( reader, self.sheet_name, ['name'] + list(Rider.Fields) )
+		for row in content:
 			try:
 				rider = Rider( **row )
 			except Exception as e:
@@ -273,9 +320,13 @@ class Stage( object ):
 	
 	def read( self, reader ):
 		self.reset()
-		content, self.errors = readSheet( reader, self.sheet_name, Result.Fields )
+		content, self.climb_categories, self.errors = readSheet( reader, self.sheet_name, Result.Fields )
 		for c in content:
 			self.addRow( c )
+		bad_categories = [c for c in self.climb_categories if not 0 <= c <= 4]
+		if bad_categories:
+			self.errors.append( 'Unrecognied climb category (must be 4C, 3C, 2C, 1C or HC)' )
+		self.climb_categories = [max(min(c, 4), 0) for c in self.climb_categories]
 		return self.errors
 		
 	def __len__( self ):
@@ -289,6 +340,68 @@ class StageTTT( Stage ):
 	
 class StageRR( Stage ):
 	pass
+
+class TeamPenalty( object ):
+	Fields = (
+		'team',
+		'penalty',
+		'row'
+	)
+	NumericFields = set([
+		'penalty', 'row'
+	])
+	
+	def __init__( self, **kwargs ):
+		for f in self.Fields:
+			setattr( self, f, kwargs.get(f, None) )
+			
+		assert self.bib is not None, "Missing Bib"
+		
+		self.penalty = ExcelTimeToSeconds(self.penalty) or 0.0
+		
+		try:
+			self.row = int(self.row)
+		except:
+			pass
+			
+	def __repr__( self ):
+		return u'TeamPenalty({})'.format( u','.join( u'{}'.format(getattr(self, a)) for a in self.Fields ) )
+
+class TeamPenalties( object ):
+	def __init__( self, sheet_name = 'Team Penalties' ):
+		self.sheet_name = sheet_name
+		self.reset()
+		
+	def reset( self ):
+		self.team_penalties = defaultdict(float)
+		self.errors = []
+		
+	def addTeamPenalty( self, team_penalties ):
+		self.team_penalties[team_penalties.team] += team_penalties.penalty
+		
+	def addRow( self, row ):
+		if 'team' not in row:
+			self.errors.append( 'Row {}: Missing Team Column'.format(row['row']) )
+			return
+		try:
+			team_penalties = TeamPenalty(**row)
+		except Exception as e:
+			self.errors.append( e )
+			return
+		return self.addTeamPenalty(team_penalties)
+		
+	def empty( self ):
+		return not self.team_penalties
+	
+	def read( self, reader ):
+		self.reset()
+		content, self.errors = readSheet( reader, self.sheet_name, TeamPenalty.Fields )
+		for c in content:
+			self.addRow( c )
+		return self.errors
+		
+	def __len__( self ):
+		return len(self.team_penalties)
 
 IndividualClassification = namedtuple( 'IndividualClassification', [
 		'retired_stage',
@@ -310,17 +423,21 @@ TeamClassification = namedtuple( 'TeamClassification', [
 class Model( object):
 	def __init__( self ):
 		self.registration = Registration()
+		self.team_penalties = TeamPenalties()
 		self.stages = []
 		self.reset()
 		
 	def reset( self ):
 		self.team_gc = []
+		self.sprint_gc = []
+		self.kom_gc = []
 		self.all_teams = set()
 		
 	def read( self, fname, callbackfunc=None ):
 		self.reset()
 		self.stages = []
 		self.registration = Registration()
+		self.team_penalties = TeamPenalties()
 		
 		reader = GetExcelReader( fname )
 		self.registration.read( reader )
@@ -334,6 +451,14 @@ class Model( object):
 				stage = StageITT( sheet_name )
 			elif sheet_name.endswith('-TTT'):
 				stage = StageTTT( sheet_name )
+			elif sheet_name.lower().replace(' ', '') == 'teampenalties':
+				self.team_penalties = TeamPenalties( sheet_name )
+				errors = team_penalties.read()
+				self.all_teams = { r.team for r in self.registration.riders }
+				for team in team_penalties.team_penalties.iterkeys():
+					if team not in self.all_teams:
+						errors.append( 'Unknown Team: {}'. format(team) )
+				continue
 			else:
 				continue
 			
@@ -490,15 +615,93 @@ class Model( object):
 			if team not in best_rider_gc:
 				best_rider_gc[team] = VC(place, (place, c.bib))
 		
-		tgc = [ [team_top_times[team]] + team_place_count[team] + [best_rider_gc[team], team] for team in teams ]
+		tgc = [ [team_top_times[team] + VC(self.team_penalties.team_penalties[team])] +
+					team_place_count[team] + [best_rider_gc[team], team]
+			for team in teams ]
 		tgc.sort()
 		
 		self.team_gc = tgc
 		self.unranked_teams = sorted( team for team in self.all_teams if team not in teams )
 	
+	def getKOMGC( self ):
+		self.kom_gc = []
+		if not self.stages:
+			return
+		
+		lastStage = self.stages[-1]
+		retired = lastStage.retired
+		lastStageGC = {ic.bib: place for place, ic in enumerate(lastStage.individual_gc, 1) if ic.retired_stage == 0}
+		
+		bibCategoryWins = defaultdict(lambda: [0]*(ClimbCategoryLowest+1))
+		bibKOMTotal = defaultdict(int)
+		for stage in self.stages:
+			if not stage.climb_categories:
+				continue
+			climb_winner = [0] * len(stage.climb_categories)
+			climb_points = [0] * len(stage.climb_categories)
+			for result in stage.results:
+				if result.bib in retired:
+					continue
+				for i, v in enumerate(result.kom):
+					bibKOMTotal[result.bib] += v
+					if v > climb_points[i]:
+						climb_winner[i] = result.bib
+						climb_points[i] = v
+			for bib, category in zip(climb_winner, stage.climb_categories):
+				if bib:
+					bibCategoryWins[bib][category] += 1
+		# Sort by decreasing total KOM, then by decreasing wins by categegory climb, then by gc.
+		kom = [[bibKOMTotal[bib]] + bibCategoryWins[bib] + [lastStageGC[bib], bib]
+			for bib in bibKOMTotal.iterkeys()]
+		kom.sort( reverse=True, key=lambda x: x[:-2] + [-x[-2]] )
+		self.kom_gc = kom
+		
+	def getSprintGC( self ):
+		self.sprint_gc = []
+		if not self.stages:
+			return
+		
+		lastStage = self.stages[-1]
+		retired = lastStage.retired
+		lastStageGC = {ic.bib: place for place, ic in enumerate(lastStage.individual_gc, 1) if ic.retired_stage == 0}
+		
+		bibStageWins = defaultdict(int)
+		bibSprintWins = defaultdict(int)
+		bibSprintTotal = defaultdict(int)
+		for stage in self.stages:
+			if not isinstance(stage, StageRR):
+				continue
+			try:
+				bibStageWins[next(r for r in stage.results if r.place == 1).bib] += 1
+				stage_sprint_count = max(len(r.sprint) for r in stage.results)
+			except:
+				continue
+			sprint_points = [0] * stage_sprint_count
+			sprint_winner = [0] * stage_sprint_count
+			for result in stage.results:
+				if result.bib in retired:
+					continue
+				for i, v in enumerate(result.sprint):
+					bibSprintTotal[result.bib] += v
+					if v > sprint_points[i]:
+						sprint_winner[i] = result.bib
+						sprint_points[i] = v
+			for bib in sprint_winner:
+				if bib:
+					bibSprintWins[bib] += 1
+		
+		sprint = [[bibSprintTotal[bib], bibStageWins[bib], bibSprintWins[bib], lastStageGC[bib], bib]
+			for bib in bibSprintTotal.iterkeys()]
+		
+		# Sort by decreasing total Sprint points, then by stage wins, then by sprint wins, then by gc.
+		sprint.sort( reverse=True, key=lambda x: x[:-2] + [-x[-2]] )
+		self.sprint_gc = sprint
+	
 	def getGCs( self ):
 		self.reset()
 		self.getTeamGC()
+		self.getKOMGC()
+		self.getSprintGC()
 
 model = None
 def read( fname, callbackfunc=None ):

@@ -9,7 +9,7 @@ It takes an Excel sheet with the Registration and Stage results as input and can
 
 StageRaceGC always scores the race "from first principles", for example, if you have a 5 stage race, and a change is made to stage 2, this change is propagated throughout all subsequent stages.
 
-The Input Excel sheet must have the format described in the Input section.
+The Input Excel sheet must have the format described in the Input section.  Additional sheets in the input that do not follow the the description below are ignored.
 
 # Tutorial
 
@@ -26,21 +26,23 @@ __StageRaceGC__ accepts input in an Excel sheet.  The sheet must be organized as
 
 __StageRaceGC__ requires that the input stages be in sequence from left-to-right.
 
+Column names must match those recognized by StageRaceGC.  Case and spaces are ignored.
+
 ## Registration Sheet
 
 The Registration sheet is the main sheet for rider data.  The following header columns are recognized in any order:
 
 Column|Description
 :-----|:----------
-Bib|The rider's number
+Bib (or BibNum)|The rider's number
 First Name|Optional.  Rider's First name
 Last Name|Optional.  Rider's Last name
-Name|Optional.  Rider's name, first and last.  Use this field if you don't have the first and last name split out.
+Name|Optional.  Rider's name, first and last.  Use this field if you don't have the first and last name separately.
 Team|Rider's team
 UCI Code|Rider's UCI code
 License|Rider's local Licence code
 
-All rider data will be referenced from this sheet, even if it is restated on the results sheets.
+All rider data will be referenced from this sheet, even if it is repeated on the results sheets.
 
 ## XXX-RR Sheet(s)
 
@@ -49,17 +51,24 @@ These sheets contain the data for the results of each __Road Race__ (RR) stage. 
 Column|Description
 :-----|:----------
 Bib (or BibNum)|The rider's number
-Time|The rider's actual finish time, not including the time bonus.  Use Excel input format __hh:mm:ss__.  Fractions of a second are ignored.
+Time|The rider's actual finish time, not including the time bonus or time penalty.  Use Excel input format __hh:mm:ss__.  Fractions of a second are ignored.
 Place (or Rank or Pos)|Optional.  The rider's finish position.  If there is no __Place__ column, the finish order will be assumed to be from top to bottom.  This field will also accept __AB__ (Did Not Finish/Did Not Start) and __DQ__ (Disqualified).
-Bonus|Optional.  Time bonus for this rider.
+Bonus|Optional.  Time bonus for this rider.  Suggest Excel input format __mm:ss__.
+Penalty|Optional.  Time penalty.  The penalty is added to the rider's time for GC and Team GC calculation.  Suggest Excel input format __mm:ss__.
+Sprint1, Sprint2, Sprint3..Sprint8|Optional.  Sprint points for the sprinter's jersey.  Each stage can have up to 8 Sprint point opportunities, one in each column.
+KOM1, KOM2, KOM3..KOM8|Optional.  KOM (King of the Mountain) points for the climbers jersey.  Each stage can have up to 8 Sprint point opportunities, one in each column.  The category of the climb (one of 4C, 3C, 2C, 1C ahd HC) can also be included in the column name.  For example, "KOM1 2C", "KOM3 HC" are recognized.  This is required to break ties on KOM points where the number of first places in the highest category climbs is considered first, then if still a tie, the number of first places on the next inferior climb is considered, etc.  The winner of the KOM is considered to be the rider awarded the greatest number of points for it.
 
-Note: __Place__ and __Time__ are treated as separate pieces of information that may or may not correspond to each other.  For example, if a rider crashes during the last 3km, s/he gets the time of the riders s/he was riding with, but the place when s/he crosses the line.
+### Notes:
+
+__Place__ and __Time__ are treated as separate pieces of information that may or may not correspond to each other.  For example, if a rider crashes during the last 3km, s/he gets the time of the riders s/he was riding with, but the place when s/he crosses the line.
 
 AB and DQ are interpreted as applying for all future stages, and a rider marked as AB or DQ will no longer be included in the GC from that stage onward.  This also has implications for the Team GC if the number of team members drops below 3.
 
-Make sure that AB and DQ riders appear at the end of the list.
+Make sure that AB and DQ riders appear at the end of the list if you do not have a __Place__ column.
 
-All other column headers are ignored.  Rider information is always retrieved from the Registration page.
+The __Place__ value does not have to be unique.  For example, if a group of riders crash inside the last 3km then fail to cross the finish line, they would get the time of the riders they were riding with and all recieve the same value of last __Place__ in the stage.
+
+Column headers other than the ones above are ignored.  Rider information (name, team, etc.) is always retrieved from the Registration page keyed on the Bib number.
 
 ## XXX-ITT Sheet(s)
 
@@ -69,13 +78,17 @@ Column|Description
 :-----|:----------
 Bib (or BibNum)|The rider's number
 Time|The rider's finish time including any time penalties.  Use Excel input format __hh:mm:ss.000__ to record fractions of a second.
-Bonus|Optional.  Time bonus for the rider.
+Bonus|Optional.  Time bonus for the rider.  Suggest Excel input format __mm:ss__.
 Place (or Rank or Pos)|Optional.  Used to indicate __AB__ (Did not finish) and __DQ__ (Disqualified).  Other values are ignored.
+Penalty|Optional.  Time penalty.  The penalty is added to the rider's time for GC and Team GC calculation.  Suggest Excel input format __mm:ss__.
 
-Make sure that AB and DQ rider's appear at the end of the list.
+### Notes:
+
+Make sure that AB and DQ riders appear at the end of the list if you do not have a __Place__ column.
+
 AB and DQ are interpreted as applying for all future stages, and a rider marked as AB or DQ will no longer be included in the GC from that stage onward.  This also has implications for the Team GC if the number of team members drops below 3.
 
-All other column headers are ignored.  Rider information is always retrieved from the Registration page.
+Column headers other than the ones above are ignored.  Rider information (name, team, etc.) is always retrieved from the Registration page keyed on the Bib number.
 
 ## XXX-TTT Sheet(s)
 
@@ -87,11 +100,28 @@ Bib (or BibNum)|The rider's number
 Time|The rider's finish time including any time penalties.  Use Excel input format __hh:mm:ss.000__ to record fractions of a second.
 Bonus|Optional.  Time bonus for the rider.
 Place (or Rank or Pos)|Optional.  Used to indicate __AB__ (Did not finish) and __DQ__ (Disqualified).  Other values are ignored.
+Penalty|Optional.  Time penalty.  The penalty is added to the rider's time for GC and Team GC calculation.  Suggest Excel input format __mm:ss__.
 
-Make sure that AB and DQ riders are at the end of the list.
+### Notes:
+
+Make sure that AB and DQ riders appear at the end of the list if you do not have a __Place__ column.
+
 AB and DQ are interpreted as applying for all future stages, and a rider marked as AB or DQ will no longer be included in the GC from that stage onward.  This also has implications for the Team GC if the number of team members drops below 3.
 
-All other column headers are ignored.  Rider information is always retrieved from the Registration page.
+Column headers other than the ones above are ignored.  Rider information (name, team, etc.) is always retrieved from the Registration page keyed on the Bib number.
+
+## Team Penalty Sheet
+
+As per UCI Rule 12.1.021, it is sometimes required to give a Team a 30-second penalty.  The __Team Penalty__ sheet allows you to do this.
+
+Column|Description
+:-----|:----------
+Team|The team.
+Penalty|Optional.  A time penalty given to the team.  The penalty is added to the team's GC after it is calculated.  Suggest Excel input format __mm:ss__.
+
+The same Team may appear multiple times in the __Team Penalty__ sheet.  The sum of the penalties will be applied to the Team GC.
+
+Column headers other than the ones above are ignored.  
 
 # Main Screen
 The Main Screen is divided into three major areas:
@@ -110,6 +140,7 @@ If you change your Excel sheet, press the __Update__ button to get __StageRaceGC
 Shows any problems with reading the sheets.  It is important to investigate any issues reported here.
 
 ## Output
+
 
 Shows the __Individual GC__ and __Team GC__.  Also shows the intermediate results from each stage.
 

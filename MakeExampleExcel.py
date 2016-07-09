@@ -20,6 +20,33 @@ def make_title( s ):
 	words = [(w.upper() if w == u'uci' else w) for w in s.split(u'_')]
 	return u' '.join( (w[0].upper() + w[1:]) for w in words if w not in (u'of', u'in', u'or') )
 	
+stage_points = '''
+50	30	20	18	16	14	12	10	8	7	6	5	4	3	2
+30	25	22	19	17	15	13	11	9	7	6	5	4	3	2
+20	17	15	13	11	10	9	8	7	6	5	4	3	2	1'''.strip()
+stage_points = stage_points.split( '\n' )
+stage_points = [[int(n) for n in s.split()] for s in stage_points]
+
+mountain_points = '''
+1st	1	2	5	10	25
+2nd		1	3	8	20
+3rd			2	6	16
+4th			1	4	14
+5th				2	12
+6th				1	10
+7th					8
+8th					6
+9th					4
+10th				2'''.strip()
+
+kom_by_category = [[] for x in xrange(5)]
+for c in xrange(5):
+	for p, line in enumerate(mountain_points.split('\n')):
+		try:
+			kom_by_category[c].append( int(line.split('\t')[5-c]) )
+		except Exception as e:
+			break
+
 def MakeExampleExcel():
 	random.seed( 0xed )
 	
@@ -68,9 +95,9 @@ def MakeExampleExcel():
 			ws = wb.add_worksheet('Stage {}-RR'.format(stage+1))
 		fit_sheet = FitSheetWrapper( ws )
 		
-		fields = ['bib', 'time', 'place', 'penalty', 'bonus']
+		fields = ['bib', 'time', 'place', 'penalty', 'bonus', 'kom 1 1C', 'kom 2 HC', 'sprint 1', 'sprint 2']
 		if isTT:
-			fields.pop()
+			fields = fields[:5]
 		
 		row = 0
 		for c, field in enumerate(fields):
@@ -87,6 +114,22 @@ def MakeExampleExcel():
 	
 		for b in bibAB:
 			bibs.remove( b )
+			
+		if not isTT:
+			for c in xrange(5,9):
+				positions = [x for x in xrange(len(bibs))]
+				random.shuffle( positions )
+				if fields[c] == 'sprint 2':
+					points = stage_points[stage%len(stage_points)]
+					positions.sort()
+				elif fields[c] == 'sprint 1':
+					points = [6,4,2]
+				elif fields[c] == 'kom 2 HC':
+					points = kom_by_category[0]
+				elif fields[c] == 'kom 1 1C':
+					points = kom_by_category[1]
+				for point, pos in zip(points, positions):
+					fit_sheet.write( pos+1, c, point )
 	
 	wb.close()
 	

@@ -69,7 +69,7 @@ def StageRaceGCToGrid( notebook ):
 		)
 		
 		grid = ReorderableGrid( notebook )
-		grid.CreateGrid( len(stage.individual_gc), len(headers) )
+		grid.CreateGrid( len(getattr(stage, 'individual_gc', [])), len(headers) )
 		grid.EnableReorderRows( False )
 		
 		for col, h in enumerate(headers):
@@ -206,10 +206,118 @@ def StageRaceGCToGrid( notebook ):
 		grid.AutoSize()
 		return grid
 	
+	#---------------------------------------------------------------------------------------
+	def writeSprintGC():
+		if not model.sprint_gc:
+			return
+		
+		riderFields = set( model.registration.getFieldsInUse() )
+		headers = (
+			['place', 'bib', 'last_name', 'first_name', 'team'] +
+			(['uci_code'] if 'uci_code' in riderFields else []) +
+			(['license'] if 'license' in riderFields else []) +
+			['points', 'stage_wins', 'sprint_wins', 'GC']
+		)
+		
+		grid = ReorderableGrid( notebook )
+		grid.CreateGrid( len(model.sprint_gc), len(headers) )
+		grid.EnableReorderRows( False )
+		
+		for col, h in enumerate(headers):
+			attr = gridlib.GridCellAttr()
+			attr.SetReadOnly()
+			if h in Model.Result.NumericFields or h in {'place', 'points', 'stage_wins', 'sprint_wins', 'GC'}:
+				attr.SetAlignment( wx.ALIGN_RIGHT, wx.ALIGN_CENTRE )
+			grid.SetColAttr( col, attr )
+			grid.SetColLabelValue( col, Utils.fieldToHeader(h, True) )
+		
+		rowNum = 0
+		for place, r in enumerate(model.sprint_gc, 1):
+			try:
+				rider = model.registration.bibToRider[r[-1]]
+			except KeyError:
+				continue
+		
+			col = 0
+			grid.SetCellValue( rowNum, col, unicode(place) ); col += 1			
+			grid.SetCellValue( rowNum, col, unicode(rider.bib) ); col += 1
+			grid.SetCellValue( rowNum, col, unicode(rider.last_name).upper()); col += 1
+			grid.SetCellValue( rowNum, col, unicode(rider.first_name) ); col += 1
+			grid.SetCellValue( rowNum, col, unicode(rider.team) ); col += 1
+			
+			if 'uci_code' in riderFields:
+				grid.SetCellValue( rowNum, col, unicode(rider.uci_code) ); col += 1
+			if 'license' in riderFields:
+				grid.SetCellValue( rowNum, col, unicode(rider.license) ); col += 1
+
+			for v in r[:-1]:
+				grid.SetCellValue( rowNum, col, unicode(v) if v else u'' ); col += 1
+				
+			rowNum +=1
+			
+		grid.AutoSize()
+		return grid
+		
+	#---------------------------------------------------------------------------------------
+	def writeKOMGC():
+		if not model.kom_gc:
+			return
+		
+		riderFields = set( model.registration.getFieldsInUse() )
+		headers = (
+			['place', 'bib', 'last_name', 'first_name', 'team'] +
+			(['uci_code'] if 'uci_code' in riderFields else []) +
+			(['license'] if 'license' in riderFields else []) +
+			['KOM Total', 'HC Wins', 'C1 Wins', 'C2 Wins', 'C3 Wins', 'C4 Wins', 'GC']
+		)
+		
+		grid = ReorderableGrid( notebook )
+		grid.CreateGrid( len(model.kom_gc), len(headers) )
+		grid.EnableReorderRows( False )
+		
+		for col, h in enumerate(headers):
+			attr = gridlib.GridCellAttr()
+			attr.SetReadOnly()
+			if h in Model.Result.NumericFields or h in {'KOM Total', 'HC Wins', 'C1 Wins', 'C2 Wins', 'C3 Wins', 'C4 Wins', 'GC'}:
+				attr.SetAlignment( wx.ALIGN_RIGHT, wx.ALIGN_CENTRE )
+			grid.SetColAttr( col, attr )
+			grid.SetColLabelValue( col, Utils.fieldToHeader(h, True) )
+		
+		rowNum = 0
+		for place, r in enumerate(model.kom_gc, 1):
+			try:
+				rider = model.registration.bibToRider[r[-1]]
+			except KeyError:
+				continue
+		
+			col = 0
+			grid.SetCellValue( rowNum, col, unicode(place) ); col += 1			
+			grid.SetCellValue( rowNum, col, unicode(rider.bib) ); col += 1
+			grid.SetCellValue( rowNum, col, unicode(rider.last_name).upper()); col += 1
+			grid.SetCellValue( rowNum, col, unicode(rider.first_name) ); col += 1
+			grid.SetCellValue( rowNum, col, unicode(rider.team) ); col += 1
+			
+			if 'uci_code' in riderFields:
+				grid.SetCellValue( rowNum, col, unicode(rider.uci_code) ); col += 1
+			if 'license' in riderFields:
+				grid.SetCellValue( rowNum, col, unicode(rider.license) ); col += 1
+
+			for v in r[:-1]:
+				grid.SetCellValue( rowNum, col, unicode(v) if v else u'' ); col += 1
+				
+			rowNum +=1
+			
+		grid.AutoSize()
+		return grid
+		
 	#------------------------------------------------------------------------------------
 	
 	if model.stages:
 		notebook.AddPage( writeIC(model.stages[-1]), u'IndividualGC' )
+		if model.sprint_gc:
+			notebook.AddPage( writeSprintGC(), u'SprintGC' )
+		if model.kom_gc:
+			notebook.AddPage( writeKOMGC(), u'KOMGC' )
 		notebook.AddPage( writeTeamGC(), u'TeamGC' )
 		for stage in reversed(model.stages):
 			notebook.AddPage( writeIC(stage), stage.sheet_name + '-GC' )

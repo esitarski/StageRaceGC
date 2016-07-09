@@ -139,6 +139,7 @@ class MainWin( wx.Frame ):
 					_('If the Excel file is open, please close it and try again')
 				)
 			)
+			return
 		self.fileBrowse.SetValue( fname_excel )
 		self.doUpdate( event )
 		Utils.LaunchApplication( fname_excel )

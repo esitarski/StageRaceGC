@@ -161,8 +161,97 @@ def StageRaceGCToExcel( fname_excel, model ):
 			rowNum +=1
 	
 	#---------------------------------------------------------------------------------------
+	def writeSprintGC( ws ):
+		fit_sheet = FitSheetWrapper( ws )
+		
+		riderFields = set( model.registration.getFieldsInUse() )
+		headers = (
+			['place', 'bib', 'last_name', 'first_name', 'team'] +
+			(['uci_code'] if 'uci_code' in riderFields else []) +
+			(['license'] if 'license' in riderFields else []) +
+			['points', 'stage_wins', 'sprint_wins', 'GC']
+		)
+		
+		rowNum = 0
+		for c, h in enumerate(headers):
+			fit_sheet.write( rowNum, c, Utils.fieldToHeader(h), bold_format )
+		rowNum +=1
+		
+		for place, r in enumerate(model.sprint_gc, 1):
+			try:
+				rider = model.registration.bibToRider[r[-1]]
+			except KeyError:
+				continue
+		
+			col = 0
+			fit_sheet.write(  rowNum, col, unicode(place) ); col += 1			
+			fit_sheet.write(  rowNum, col, unicode(rider.bib) ); col += 1
+			fit_sheet.write(  rowNum, col, unicode(rider.last_name).upper()); col += 1
+			fit_sheet.write(  rowNum, col, unicode(rider.first_name) ); col += 1
+			fit_sheet.write(  rowNum, col, unicode(rider.team) ); col += 1
+			
+			if 'uci_code' in riderFields:
+				fit_sheet.write(  rowNum, col, unicode(rider.uci_code) ); col += 1
+			if 'license' in riderFields:
+				fit_sheet.write(  rowNum, col, unicode(rider.license) ); col += 1
+
+			for v in r[:-1]:
+				if v:
+					fit_sheet.write( rowNum, col, v )
+				col += 1
+				
+			rowNum +=1
+		
+	#---------------------------------------------------------------------------------------
+	def writeKOMGC( ws ):
+		fit_sheet = FitSheetWrapper( ws )
+		
+		riderFields = set( model.registration.getFieldsInUse() )
+		headers = (
+			['place', 'bib', 'last_name', 'first_name', 'team'] +
+			(['uci_code'] if 'uci_code' in riderFields else []) +
+			(['license'] if 'license' in riderFields else []) +
+			['KOM Total', 'HC Wins', 'C1 Wins', 'C2 Wins', 'C3 Wins', 'C4 Wins', 'GC']
+		)
+		
+		rowNum = 0
+		for c, h in enumerate(headers):
+			fit_sheet.write( rowNum, c, Utils.fieldToHeader(h), bold_format )
+		rowNum +=1
+		
+		for place, r in enumerate(model.kom_gc, 1):
+			try:
+				rider = model.registration.bibToRider[r[-1]]
+			except KeyError:
+				continue
+		
+			col = 0
+			fit_sheet.write( rowNum, col, unicode(place) ); col += 1			
+			fit_sheet.write( rowNum, col, unicode(rider.bib) ); col += 1
+			fit_sheet.write( rowNum, col, unicode(rider.last_name).upper()); col += 1
+			fit_sheet.write( rowNum, col, unicode(rider.first_name) ); col += 1
+			fit_sheet.write( rowNum, col, unicode(rider.team) ); col += 1
+			
+			if 'uci_code' in riderFields:
+				fit_sheet.write( rowNum, col, unicode(rider.uci_code) ); col += 1
+			if 'license' in riderFields:
+				fit_sheet.write( rowNum, col, unicode(rider.license) ); col += 1
+
+			for v in r[:-1]:
+				if v:
+					fit_sheet.write( rowNum, col, v )
+				col += 1
+				
+			rowNum +=1
+		
+	#---------------------------------------------------------------------------------------
 	if model.stages:
-		writeIC(  wb.add_worksheet('IndividualGC'), model.stages[-1] )
+		writeIC( wb.add_worksheet('IndividualGC'), model.stages[-1] )
+	if model.sprint_gc:
+		writeSprintGC( wb.add_worksheet('SprintGC') )
+	if model.kom_gc:
+		writeKOMGC( wb.add_worksheet('KOMGC') )
+
 	writeTeamGC( wb.add_worksheet('TeamGC') )
 	for stage in reversed(model.stages):
 		writeIC(  wb.add_worksheet(stage.sheet_name + '-GC'), stage )

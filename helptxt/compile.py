@@ -47,6 +47,7 @@ def CompileHelp( dir = '.' ):
 	with working_directory( dir ):
 		# Check if any of the help files need rebuilding.
 		doNothing = True
+		'''
 		for fname in glob.glob("./*.txt"):
 			fbase = os.path.splitext(os.path.basename(fname))[0]
 			fhtml = os.path.join( '..', HtmlDocFolder, fbase + '.html' )
@@ -55,6 +56,7 @@ def CompileHelp( dir = '.' ):
 				break
 		if doNothing:
 			return
+		'''
 	
 		md = markdown.Markdown(
 				extensions=['toc', 'tables', 'sane_lists'], 
