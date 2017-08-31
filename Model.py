@@ -238,6 +238,10 @@ def readSheet( reader, sheet_name, header_fields ):
 		
 		# Map the column headers to the standard fields.
 		if not header_map:
+			# Check if there is a "bib" header in this row.
+			if not any( scrub_header(v) == 'BIB' for v in row ):
+				continue
+			
 			for c, v in enumerate(row):
 				rv = scrub_header( v )
 				if rv.startswith('KOM'):

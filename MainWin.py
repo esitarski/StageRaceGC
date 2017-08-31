@@ -29,7 +29,7 @@ from Version import AppVerName
 def ShowSplashScreen():
 	bitmap = wx.Bitmap( os.path.join(Utils.getImageFolder(), 'StageRaceGC.png'), wx.BITMAP_TYPE_PNG )
 	showSeconds = 2.5
-	frame = wx.SplashScreen(bitmap, wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT, int(showSeconds*1000), None)
+	frame = wx.adv.SplashScreen(bitmap, wx.adv.SPLASH_CENTRE_ON_SCREEN|wx.adv.SPLASH_TIMEOUT, int(showSeconds*1000), None)
 
 class ListMixCtrl( wx.ListCtrl, listmix.ListCtrlAutoWidthMixin ):
 	def __init__( self, parent, ID=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=0 ):
@@ -315,7 +315,7 @@ def MainLoop():
 
 	# Set the upper left icon.
 	try:
-		icon = wx.Icon( os.path.join(Utils.getImageFolder(), 'StageRaceGC.ico'), wx.BITMAP_TYPE_ICO )
+		icon = wx.Icon( os.path.join(Utils.getImageFolder(), 'StageRaceGC.ico'), wx.BITMAP_TYPE_PNG )
 		mainWin.SetIcon( icon )
 	except:
 		pass
