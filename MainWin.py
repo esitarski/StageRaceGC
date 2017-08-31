@@ -315,7 +315,7 @@ def MainLoop():
 
 	# Set the upper left icon.
 	try:
-		icon = wx.Icon( os.path.join(Utils.getImageFolder(), 'StageRaceGC.ico'), wx.BITMAP_TYPE_PNG )
+		icon = wx.Icon( os.path.join(Utils.getImageFolder(), 'StageRaceGC.ico'), wx.BITMAP_TYPE_ICO )
 		mainWin.SetIcon( icon )
 	except:
 		pass
