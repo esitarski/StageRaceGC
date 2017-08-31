@@ -49,7 +49,7 @@ def StageRaceGCToExcel( fname_excel, model ):
 		riderFields = set( model.registration.getFieldsInUse() )
 		headers = (
 			['Place', 'Bib', 'Last Name', 'First Name', 'Team'] +
-			(['UCI Code'] if 'uci_code' in riderFields else []) +
+			(['UCI ID'] if 'uci_id' in riderFields else []) +
 			(['License'] if 'license' in riderFields else []) +
 			[Utils.fieldToHeader(h) for h in ic_fields]
 		)
@@ -76,7 +76,7 @@ def StageRaceGCToExcel( fname_excel, model ):
 			fit_sheet.write( rowNum, col, rider.first_name ); col += 1
 			fit_sheet.write( rowNum, col, rider.team ); col += 1
 			
-			if 'uci_code' in riderFields:
+			if 'uci_id' in riderFields:
 				fit_sheet.write( rowNum, col, rider.team ); col += 1
 			if 'license' in riderFields:
 				fit_sheet.write( rowNum, col, rider.license ); col += 1
@@ -167,7 +167,7 @@ def StageRaceGCToExcel( fname_excel, model ):
 		riderFields = set( model.registration.getFieldsInUse() )
 		headers = (
 			['place', 'bib', 'last_name', 'first_name', 'team'] +
-			(['uci_code'] if 'uci_code' in riderFields else []) +
+			(['uci_id'] if 'uci_id' in riderFields else []) +
 			(['license'] if 'license' in riderFields else []) +
 			['points', 'stage_wins', 'sprint_wins', 'GC']
 		)
@@ -190,8 +190,8 @@ def StageRaceGCToExcel( fname_excel, model ):
 			fit_sheet.write(  rowNum, col, unicode(rider.first_name) ); col += 1
 			fit_sheet.write(  rowNum, col, unicode(rider.team) ); col += 1
 			
-			if 'uci_code' in riderFields:
-				fit_sheet.write(  rowNum, col, unicode(rider.uci_code) ); col += 1
+			if 'uci_id' in riderFields:
+				fit_sheet.write(  rowNum, col, unicode(rider.uci_id) ); col += 1
 			if 'license' in riderFields:
 				fit_sheet.write(  rowNum, col, unicode(rider.license) ); col += 1
 
@@ -209,7 +209,7 @@ def StageRaceGCToExcel( fname_excel, model ):
 		riderFields = set( model.registration.getFieldsInUse() )
 		headers = (
 			['place', 'bib', 'last_name', 'first_name', 'team'] +
-			(['uci_code'] if 'uci_code' in riderFields else []) +
+			(['uci_id'] if 'uci_id' in riderFields else []) +
 			(['license'] if 'license' in riderFields else []) +
 			['KOM Total', 'HC Wins', 'C1 Wins', 'C2 Wins', 'C3 Wins', 'C4 Wins', 'GC']
 		)
@@ -232,8 +232,8 @@ def StageRaceGCToExcel( fname_excel, model ):
 			fit_sheet.write( rowNum, col, unicode(rider.first_name) ); col += 1
 			fit_sheet.write( rowNum, col, unicode(rider.team) ); col += 1
 			
-			if 'uci_code' in riderFields:
-				fit_sheet.write( rowNum, col, unicode(rider.uci_code) ); col += 1
+			if 'uci_id' in riderFields:
+				fit_sheet.write( rowNum, col, unicode(rider.uci_id) ); col += 1
 			if 'license' in riderFields:
 				fit_sheet.write( rowNum, col, unicode(rider.license) ); col += 1
 

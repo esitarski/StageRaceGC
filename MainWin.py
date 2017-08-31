@@ -1,4 +1,5 @@
 import wx
+import wx.adv
 import wx.lib.masked.numctrl as NC
 import  wx.lib.intctrl as IC
 from wx.lib.wordwrap import wordwrap
@@ -84,7 +85,7 @@ class MainWin( wx.Frame ):
 		self.tutorialButton = wx.Button( self, label=_('Help/Tutorial...') )
 		self.tutorialButton.Bind( wx.EVT_BUTTON, self.onTutorial )
 		vs.Add( self.tutorialButton, flag=wx.ALL, border=4 )
-		branding = wx.HyperlinkCtrl( self, id=wx.ID_ANY, label=u"Powered by CrossMgr", url=u"http://www.sites.google.com/site/crossmgrsoftware/" )
+		branding = wx.adv.HyperlinkCtrl( self, id=wx.ID_ANY, label=u"Powered by CrossMgr", url=u"http://www.sites.google.com/site/crossmgrsoftware/" )
 		vs.Add( branding, flag=wx.ALL, border=4 )
 		horizontalControlSizer.Add( vs )
 
@@ -133,6 +134,7 @@ class MainWin( wx.Frame ):
 		try:
 			fname_excel = MakeExampleExcel()
 		except Exception as e:
+			traceback.print_exc()
 			Utils.MessageOK( self, u'{}\n\n{}\n\n{}'.format(
 					u'Problem creating Excel sheet.',
 					e,
@@ -170,12 +172,12 @@ class MainWin( wx.Frame ):
 		stages = (stages or (Model.model and Model.model.stages) or [])
 			
 		def insert_stage_info( stage ):
-			idx = self.stageList.InsertStringItem( sys.maxint, stage.sheet_name )
-			self.stageList.SetStringItem( idx, 1, unicode(len(stage)) )
+			idx = self.stageList.InsertItem( sys.maxint, stage.sheet_name )
+			self.stageList.SetItem( idx, 1, unicode(len(stage)) )
 			if stage.errors:
-				self.stageList.SetStringItem( idx, 2, u'{}: {}'.format(len(stage.errors), u'  '.join(u'[{}]'.format(e) for e in stage.errors)) )
+				self.stageList.SetItem( idx, 2, u'{}: {}'.format(len(stage.errors), u'  '.join(u'[{}]'.format(e) for e in stage.errors)) )
 			else:
-				self.stageList.SetStringItem( idx, 2, u'                                                                ' )
+				self.stageList.SetItem( idx, 2, u'                                                                ' )
 		
 		insert_stage_info( registration )
 		for stage in stages:
@@ -207,6 +209,7 @@ class MainWin( wx.Frame ):
 			with open(self.fname, 'rb') as f:
 				pass
 		except Exception as e:
+			traceback.print_exc()
 			Utils.MessageOK( self, u'{}:\n\n    {}\n\n{}'.format( _('Cannot Open Excel file'), self.fname, e), _('Cannot Open Excel File') )
 			self.setUpdated( False )
 			return

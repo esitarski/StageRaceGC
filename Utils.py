@@ -15,25 +15,6 @@ def initTranslation():
 		
 initTranslation()
 
-#-----------------------------------------------------------------------
-# Monkey-patch font so we always fetch a default font face.
-#
-if 'WXMAC' not in wx.Platform:
-	FontFace = 'Arial'
-	FontFromPixelSize = wx.FontFromPixelSize
-	def FontFromPixelSizeFontFace( *args, **kwargs ):
-		if 'face' not in kwargs:
-			kwargs['face'] = FontFace
-		return FontFromPixelSize( *args, **kwargs )
-	wx.FontFromPixelSize = FontFromPixelSizeFontFace
-
-	Font = wx.Font
-	def FontFontFace( *args, **kwargs ):
-		if 'face' not in kwargs:
-			kwargs['face'] = FontFace
-		return Font( *args, **kwargs )
-	wx.Font = FontFontFace
-
 try:
 	from win32com.shell import shell, shellcon
 except ImportError:
@@ -123,11 +104,17 @@ def writeLog( message ):
 	try:
 		dt = datetime.datetime.now()
 		dt = dt.replace( microsecond = 0 )
-		sys.stdout.write( '{} ({}) {}{}'.format(dt.isoformat(), PlatformName, message, '\n' if not message or message[-1] != '\n' else '' ) )
+		msg = u'{} ({}) {}{}'.format(
+			dt.isoformat(),
+			PlatformName,
+			message,
+			'\n' if not message or message[-1] != '\n' else ''
+		)
+		sys.stdout.write( removeDiacritic(msg) )
 		sys.stdout.flush()
 	except IOError:
 		pass
-		
+				
 def disable_stdout_buffering():
 	fileno = sys.stdout.fileno()
 	temp_fd = os.dup(fileno)
@@ -156,6 +143,8 @@ def logException( e, exc_info ):
 	writeLog( '**** End Exception ****' )
 
 def fieldToHeader( f, multi_line=False ):
+	if f == u'uci_id':
+		return _('UCI ID')
 	if f == u'uci_code':
 		return _('UCI Code')
 	if f.endswith(u'_name'):

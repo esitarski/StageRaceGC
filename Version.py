@@ -1,1 +1,1 @@
-AppVerName="StageRaceGC 0.0.6"
+AppVerName="StageRaceGC 0.0.7"

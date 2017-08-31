@@ -50,9 +50,9 @@ def StageRaceGCToGrid( notebook ):
 			key = (page, coords[0], coords[1])
 			if key != model.lastKey:
 				try:
-					event.GetEventObject().SetToolTipString(model.comments[key])
+					event.GetEventObject().SetToolTip(model.comments[key])
 				except:
-					event.GetEventObject().SetToolTipString(u'')
+					event.GetEventObject().SetToolTip(u'')
 				model.lastKey = key
 			event.Skip()
 		return callback
@@ -63,7 +63,7 @@ def StageRaceGCToGrid( notebook ):
 		riderFields = set( model.registration.getFieldsInUse() )
 		headers = (
 			['place', 'bib', 'last_name', 'first_name', 'team'] +
-			(['uci_code'] if 'uci_code' in riderFields else []) +
+			(['uci_id'] if 'uci_id' in riderFields else []) +
 			(['license'] if 'license' in riderFields else []) +
 			list(ic_fields)
 		)
@@ -79,7 +79,7 @@ def StageRaceGCToGrid( notebook ):
 				attr.SetAlignment( wx.ALIGN_RIGHT, wx.ALIGN_CENTRE )
 			grid.SetColAttr( col, attr )
 			grid.SetColLabelValue( col, Utils.fieldToHeader(h, True) )
-		
+
 		rowNum = 0
 		for place, r in enumerate(stage.individual_gc, 1):
 			try:
@@ -98,8 +98,8 @@ def StageRaceGCToGrid( notebook ):
 			grid.SetCellValue( rowNum, col, unicode(rider.first_name) ); col += 1
 			grid.SetCellValue( rowNum, col, unicode(rider.team) ); col += 1
 			
-			if 'uci_code' in riderFields:
-				grid.SetCellValue( rowNum, col, unicode(rider.uci_code) ); col += 1
+			if 'uci_id' in riderFields:
+				grid.SetCellValue( rowNum, col, unicode(rider.uci_id) ); col += 1
 			if 'license' in riderFields:
 				grid.SetCellValue( rowNum, col, unicode(rider.license) ); col += 1
 			
@@ -214,7 +214,7 @@ def StageRaceGCToGrid( notebook ):
 		riderFields = set( model.registration.getFieldsInUse() )
 		headers = (
 			['place', 'bib', 'last_name', 'first_name', 'team'] +
-			(['uci_code'] if 'uci_code' in riderFields else []) +
+			(['uci_id'] if 'uci_id' in riderFields else []) +
 			(['license'] if 'license' in riderFields else []) +
 			['points', 'stage_wins', 'sprint_wins', 'GC']
 		)
@@ -245,8 +245,8 @@ def StageRaceGCToGrid( notebook ):
 			grid.SetCellValue( rowNum, col, unicode(rider.first_name) ); col += 1
 			grid.SetCellValue( rowNum, col, unicode(rider.team) ); col += 1
 			
-			if 'uci_code' in riderFields:
-				grid.SetCellValue( rowNum, col, unicode(rider.uci_code) ); col += 1
+			if 'uci_id' in riderFields:
+				grid.SetCellValue( rowNum, col, unicode(rider.uci_id) ); col += 1
 			if 'license' in riderFields:
 				grid.SetCellValue( rowNum, col, unicode(rider.license) ); col += 1
 
@@ -266,7 +266,7 @@ def StageRaceGCToGrid( notebook ):
 		riderFields = set( model.registration.getFieldsInUse() )
 		headers = (
 			['place', 'bib', 'last_name', 'first_name', 'team'] +
-			(['uci_code'] if 'uci_code' in riderFields else []) +
+			(['uci_id'] if 'uci_id' in riderFields else []) +
 			(['license'] if 'license' in riderFields else []) +
 			['KOM Total', 'HC Wins', 'C1 Wins', 'C2 Wins', 'C3 Wins', 'C4 Wins', 'GC']
 		)
@@ -297,8 +297,8 @@ def StageRaceGCToGrid( notebook ):
 			grid.SetCellValue( rowNum, col, unicode(rider.first_name) ); col += 1
 			grid.SetCellValue( rowNum, col, unicode(rider.team) ); col += 1
 			
-			if 'uci_code' in riderFields:
-				grid.SetCellValue( rowNum, col, unicode(rider.uci_code) ); col += 1
+			if 'uci_id' in riderFields:
+				grid.SetCellValue( rowNum, col, unicode(rider.uci_id) ); col += 1
 			if 'license' in riderFields:
 				grid.SetCellValue( rowNum, col, unicode(rider.license) ); col += 1
 

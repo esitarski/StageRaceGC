@@ -12,14 +12,15 @@ from FitSheetWrapper import FitSheetWrapper
 def get_license():
 	return u''.join( 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[random.randint(0,25)] for i in xrange(6) )
 
-def get_uci_code():
+def get_uci_id():
 	dob = datetime.date.today() - datetime.timedelta( days=random.normalvariate(25,3)*365.25 )
 	return u'FRA{}'.format( dob.strftime( '%Y%m%d' ) ) 
-	
-def make_title( s ):
-	words = [(w.upper() if w == u'uci' else w) for w in s.split(u'_')]
-	return u' '.join( (w[0].upper() + w[1:]) for w in words if w not in (u'of', u'in', u'or') )
-	
+
+def get_uci_id():
+	uci_id = ''.join(random.choice('123456789') for i in xrange(9))
+	uci_id += '{:02d}'.format(int(uci_id)%97)
+	return uci_id
+
 stage_points = '''
 50	30	20	18	16	14	12	10	8	7	6	5	4	3	2
 30	25	22	19	17	15	13	11	9	7	6	5	4	3	2
@@ -64,13 +65,13 @@ def MakeExampleExcel():
 	ws = wb.add_worksheet('Registration')
 	fit_sheet = FitSheetWrapper( ws )
 	
-	fields = ['bib', 'first_name', 'last_name', 'uci_code', 'license', 'team']
+	fields = ['bib', 'first_name', 'last_name', 'uci_id', 'license', 'team']
 	row = 0
 	for c, field in enumerate(fields):
-		fit_sheet.write( row, c, make_title(field), bold_format )
+		fit_sheet.write( row, c, Utils.fieldToHeader(field), bold_format )
 		
-	riders = 20
-	team_size = 4
+	riders = 25
+	team_size = riders // len(teams)
 	bibs = []
 	for i in xrange(riders):
 		row += 1
@@ -78,7 +79,7 @@ def MakeExampleExcel():
 		fit_sheet.write( row, 0, bibs[i] )
 		fit_sheet.write( row, 1, common_first_names[i%len(common_first_names)] )
 		fit_sheet.write( row, 2, common_last_names[i%len(common_last_names)] )
-		fit_sheet.write( row, 3, get_uci_code() )
+		fit_sheet.write( row, 3, get_uci_id() )
 		fit_sheet.write( row, 4, get_license() )
 		fit_sheet.write( row, 5, teams[i//team_size] )
 
@@ -101,7 +102,7 @@ def MakeExampleExcel():
 		
 		row = 0
 		for c, field in enumerate(fields):
-			fit_sheet.write( row, c, make_title(field), bold_format )
+			fit_sheet.write( row, c, Utils.fieldToHeader(field), bold_format )
 		
 		bibAB = []
 		for i, (bib, t) in enumerate(sorted( ((bib, random.normalvariate(race_time-bib/4.0, 5*60)) for bib in bibs), key=operator.itemgetter(1) )):

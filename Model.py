@@ -17,7 +17,7 @@ class Rider( object ):
 		'bib',
 		'first_name', 'last_name',
 		'team',
-		'uci_code',
+		'uci_id',
 		'license',
 		'row'
 	)
@@ -75,7 +75,7 @@ class Rider( object ):
 		if self.license is not None:
 			self.license = unicode(self.license).strip()
 			
-		if self.row:
+		if self.row is not None:
 			try:
 				self.row = int(self.row)
 			except ValueError:
@@ -83,16 +83,27 @@ class Rider( object ):
 				
 		if self.last_name:
 			self.last_name = unicode(self.last_name).replace(u'*',u'').strip()
+		self.last_name = self.last_name or u''
 			
 		if self.first_name:
 			self.first_name = unicode(self.first_name).replace(u'*',u'').replace(u'(JR)',u'').strip()
+		self.first_name = self.first_name or u''
 		
-		if self.uci_code:
-			self.uci_code = unicode(self.uci_code).strip()
-			if len(self.uci_code) != 11:
-				raise ValueError( u'Row {}: invalid uci_code: {}'.format(self.row, self.uci_code) )
-				
 		assert self.bib is not None, 'Missing Bib'
+		self.bib = int(self.bib)
+				
+		if self.uci_id:
+			try:
+				self.uci_id = int(self.uci_id)
+			except:
+				pass
+			self.uci_id = unicode(self.uci_id).strip()
+			if len(self.uci_id) != 11:
+				raise ValueError( u'Row {}: invalid uci_id: {} incorrect length'.format(self.row, self.uci_id) )
+			if not self.uci_id.isdigit():
+				raise ValueError( u'Row {}: invalid uci_id: {} must be all digits'.format(self.row, self.uci_id) )
+			if int(self.uci_id[:-2]) % 97 != int(self.uci_id[-2:]):
+				raise ValueError( u'Row {}: invalid uci_id: {} checkdigit error'.format(self.row, self.uci_id) )
 				
 	@property
 	def full_name( self ):
@@ -100,7 +111,7 @@ class Rider( object ):
 		
 	@property
 	def results_name( self ):
-		return u','.join( name for name in [self.last_name.upper(), self.first_name] if name )
+		return u','.join( name for name in [(self.last_name or u'').upper(), self.first_name] if name )
 		
 	def __repr__( self ):
 		return u'Rider({})'.format(u','.join( u'{}'.format(getattr(self, a)) for a in self.Fields ))
@@ -204,9 +215,16 @@ header_sub = {
 	u'RANK':	u'PLACE',
 	u'POS':		u'PLACE',
 	u'BIBNUM':	u'BIB',
+	u'NUM':		u'BIB',
+	u'NUMBER':	u'BIB',
+	u'FNAME':	u'FIRST',
+	u'LNAME':	u'LAST',
 }
 def scrub_header( h ):
-	h = reNonAlphaNum.sub( '', Utils.removeDiacritic(unicode(h)).upper() )
+	h = unicode(h).upper()
+	if h.endswith('_NAME') or h.endswith(' NAME'):
+		h = h[:-5]
+	h = reNonAlphaNum.sub( '', Utils.removeDiacritic(h) )
 	return header_sub.get(h, h)
 
 def readSheet( reader, sheet_name, header_fields ):
@@ -241,7 +259,7 @@ def readSheet( reader, sheet_name, header_fields ):
 					hv = scrub_header( h )
 					if rv == hv:
 						header_map[h] = c
-						break
+						break						
 			continue
 	
 		# Create a Result from the row.
@@ -277,7 +295,7 @@ class Registration( object ):
 			except Exception as e:
 				self.errors.append( e )
 				continue
-				
+			
 			self.riders.append( rider )
 			self.bibToRider[rider.bib] = rider
 		return self.errors
