@@ -123,6 +123,11 @@ def ExcelTimeToSeconds( t ):
 		else:
 			# Assume an Excel float number in days.
 			t *= 24.0*60.0*60.0
+			
+			# Check for a round down precision error.
+			fract, secs = math.modf( t )			
+			if fract >= 0.99999:
+				t = secs+1.0
 	return t
 	
 reNonDigit = re.compile( '[^0-9]' )

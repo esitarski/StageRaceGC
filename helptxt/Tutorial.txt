@@ -39,10 +39,12 @@ First Name|Optional.  Rider's First name
 Last Name|Optional.  Rider's Last name
 Name|Optional.  Rider's name, first and last.  Use this field if you don't have the first and last name separately.
 Team|Rider's team
-UCI Code|Rider's UCI code
+UCI ID|Rider's UCI ID (11 digit number issued by the UCI)
 License|Rider's local Licence code
 
+This is the "master" rider data sheet.
 All rider data will be referenced from this sheet, even if it is repeated on the results sheets.
+Many rider data changes on this sheet only.
 
 ## XXX-RR Sheet(s)
 
@@ -153,7 +155,7 @@ Of course, the Individual GC and the standings after the last stage are identica
 
 ## Team Time Trials
 
-It is up to you to give all team members the correct time of the team.  StageRaceGC does not know how many riders are on a team and which wheel "counts".
+It is up to you to give all team members the correct time of the team.  StageRaceGC does not know how many riders are on a team nor "which wheel counts" as the finish time for the team.
 
 ## Team GC and Minimum Team Size
 
