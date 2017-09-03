@@ -182,8 +182,13 @@ class Result( object ):
 		self.time += self.penalty	# Always include the time penalty.
 		self.integerSeconds = int('{:.3f}'.format(self.time)[:-4])			
 		
+		try:
+			self.row = int(self.row)
+		except:
+			self.row = 0
+		
 		if not self.place:
-			self.place = self.row - 1
+			self.place = self.row - kwargs.get('header_row',1)
 		else:
 			try:
 				self.place = int( self.place )
@@ -192,11 +197,6 @@ class Result( object ):
 		
 		if not isinstance( self.place, int ):
 			self.place = 'AB'
-		
-		try:
-			self.row = int(self.row)
-		except:
-			self.row = 0
 		
 	def __repr__( self ):
 		values = [u'{}'.format(getattr(self, a)) for a in self.Fields
@@ -229,6 +229,7 @@ def readSheet( reader, sheet_name, header_fields ):
 	content = []
 	errors = []
 	climb_categories = []
+	header_row = 0
 	for row_number, row in enumerate(reader.iter_list(sheet_name)):
 		if not row:
 			continue
@@ -239,6 +240,7 @@ def readSheet( reader, sheet_name, header_fields ):
 			if not any( scrub_header(v) == 'BIB' for v in row ):
 				continue
 			
+			header_row = row_number + 1
 			for c, v in enumerate(row):
 				rv = scrub_header( v )
 				if rv.startswith('KOM'):
@@ -275,7 +277,7 @@ def readSheet( reader, sheet_name, header_fields ):
 		
 		content.append( row_fields )
 	
-	return content, climb_categories, errors
+	return content, climb_categories, errors, header_row
 
 class Registration( object ):
 	def __init__( self, sheet_name = 'Registration' ):
@@ -289,7 +291,7 @@ class Registration( object ):
 	
 	def read( self, reader ):
 		self.reset()
-		content, _, self.errors = readSheet( reader, self.sheet_name, ['name'] + list(Rider.Fields) )
+		content, _, self.errors, header_row = readSheet( reader, self.sheet_name, ['name'] + list(Rider.Fields) )
 		for row in content:
 			try:
 				rider = Rider( **row )
@@ -331,10 +333,11 @@ class Stage( object ):
 		if result.place is None:
 			result.place = len(self.results)
 		
-	def addRow( self, row ):
+	def addRow( self, row, header_row ):
 		if 'bib' not in row:
 			self.errors.append( 'Row {}: Missing Bib Column'.format(row['row']) )
 			return
+		row['header_row'] = header_row
 		try:
 			result = Result(**row)
 		except Exception as e:
@@ -347,9 +350,9 @@ class Stage( object ):
 	
 	def read( self, reader ):
 		self.reset()
-		content, self.climb_categories, self.errors = readSheet( reader, self.sheet_name, Result.Fields )
+		content, self.climb_categories, self.errors, header_row = readSheet( reader, self.sheet_name, Result.Fields )
 		for c in content:
-			self.addRow( c )
+			self.addRow( c, header_row )
 		bad_categories = [c for c in self.climb_categories if not 0 <= c <= 4]
 		if bad_categories:
 			self.errors.append( 'Unrecognied climb category (must be 4C, 3C, 2C, 1C or HC)' )
@@ -406,7 +409,7 @@ class TeamPenalties( object ):
 	def addTeamPenalty( self, team_penalties ):
 		self.team_penalties[team_penalties.team] += team_penalties.penalty
 		
-	def addRow( self, row ):
+	def addRow( self, row, header_row ):
 		if 'team' not in row:
 			self.errors.append( 'Row {}: Missing Team Column'.format(row['row']) )
 			return
@@ -422,9 +425,9 @@ class TeamPenalties( object ):
 	
 	def read( self, reader ):
 		self.reset()
-		content, self.errors = readSheet( reader, self.sheet_name, TeamPenalty.Fields )
+		content, self.errors, header_row = readSheet( reader, self.sheet_name, TeamPenalty.Fields )
 		for c in content:
-			self.addRow( c )
+			self.addRow( c, header_row )
 		return self.errors
 		
 	def __len__( self ):
