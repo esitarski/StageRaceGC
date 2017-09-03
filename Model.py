@@ -435,8 +435,8 @@ class TeamPenalties( object ):
 
 IndividualClassification = namedtuple( 'IndividualClassification', [
 		'retired_stage',
-		'total_time_with_bonuses',
-		'total_time_with_bonuses_plus_second_fractions',
+		'total_time_with_bonuses_plus_penalties',
+		'total_time_with_bonuses_plus_penalties_plus_second_fractions',
 		'last_stage_place',
 		'bib',
 	]
@@ -520,8 +520,8 @@ class Model( object):
 		# Calculate the classification criteria.
 		stageLast.bibs = set()
 		stageLast.total_time_without_bonuses = defaultdict( float )
-		stageLast.total_time_with_bonuses = defaultdict( float )
-		stageLast.total_time_with_bonuses_plus_second_fractions = defaultdict( float )
+		stageLast.total_time_with_bonuses_plus_penalties = defaultdict( float )
+		stageLast.total_time_with_bonuses_plus_penalties_plus_second_fractions = defaultdict( float )
 		stageLast.last_stage_place = defaultdict( int )
 		for stage in self.stages:
 			for r in stage.results:
@@ -531,12 +531,12 @@ class Model( object):
 				
 				time_without_bonus = r.integerSeconds
 				time_with_bonus = time_without_bonus - r.bonus
-				time_with_bonuses_plus_second_fractions = r.time - r.bonus
+				time_with_bonuses_plus_penalties_plus_second_fractions = r.time - r.bonus
 				
 				stageLast.total_time_without_bonuses[r.bib] += time_without_bonus
-				stageLast.total_time_with_bonuses[r.bib] += time_with_bonus
-				stageLast.total_time_with_bonuses_plus_second_fractions[r.bib] += \
-					time_with_bonuses_plus_second_fractions if isinstance(stage, (StageITT, StageTTT)) else time_with_bonus
+				stageLast.total_time_with_bonuses_plus_penalties[r.bib] += time_with_bonus
+				stageLast.total_time_with_bonuses_plus_penalties_plus_second_fractions[r.bib] += \
+					time_with_bonuses_plus_penalties_plus_second_fractions if isinstance(stage, (StageITT, StageTTT)) else time_with_bonus
 				
 				if stage == stageLast:
 					stageLast.last_stage_place[r.bib] = r.place
@@ -548,8 +548,8 @@ class Model( object):
 		for bib in stageLast.bibs:
 			ic.append( IndividualClassification(
 					0,
-					stageLast.total_time_with_bonuses[bib],
-					stageLast.total_time_with_bonuses_plus_second_fractions[bib],
+					stageLast.total_time_with_bonuses_plus_penalties[bib],
+					stageLast.total_time_with_bonuses_plus_penalties_plus_second_fractions[bib],
 					stageLast.last_stage_place[bib],
 					bib
 				)
@@ -558,8 +558,8 @@ class Model( object):
 		# Sort to get the unique classification.
 		ic.sort( key = lambda c: (
 				c.retired_stage,
-				c.total_time_with_bonuses,
-				c.total_time_with_bonuses_plus_second_fractions,
+				c.total_time_with_bonuses_plus_penalties,
+				c.total_time_with_bonuses_plus_penalties_plus_second_fractions,
 				c.last_stage_place,
 				c.bib,
 			)

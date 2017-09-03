@@ -104,8 +104,8 @@ def StageRaceGCToGrid( notebook ):
 				grid.SetCellValue( rowNum, col, unicode(rider.license) ); col += 1
 			
 			if r.retired_stage == 0:
-				grid.SetCellValue( rowNum, col, Utils.formatTime(r.total_time_with_bonuses, twoDigitHours=True) ); col += 1
-				grid.SetCellValue( rowNum, col, Utils.formatTime(r.total_time_with_bonuses_plus_second_fractions, twoDigitHours=True, extraPrecision=True) ); col += 1
+				grid.SetCellValue( rowNum, col, Utils.formatTime(r.total_time_with_bonuses_plus_penalties, twoDigitHours=True) ); col += 1
+				grid.SetCellValue( rowNum, col, Utils.formatTime(r.total_time_with_bonuses_plus_penalties_plus_second_fractions, twoDigitHours=True, extraPrecision=True) ); col += 1
 				grid.SetCellValue( rowNum, col, unicode(r.last_stage_place) ); col += 1
 			
 			rowNum +=1
