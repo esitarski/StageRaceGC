@@ -118,16 +118,8 @@ class Rider( object ):
 
 def ExcelTimeToSeconds( t ):
 	if t is not None:
-		if isinstance(t, six.string_types):
-			t = Utils.StrToSeconds( t.replace('"',':').replace("'",':') )
-		else:
-			# Assume an Excel float number in days.
-			t *= 24.0*60.0*60.0
-			
-			# Check for a round down precision error.
-			fract, secs = math.modf( t )			
-			if fract >= 0.99999:
-				t = secs+1.0
+		assert isinstance(t, six.string_types)
+		return Utils.StrToSeconds( t.replace('"',':').replace("'",':') )
 	return t
 	
 reNonDigit = re.compile( '[^0-9]' )
@@ -184,11 +176,11 @@ class Result( object ):
 		
 		assert self.bib is not None, "Missing Bib"
 		
-		self.time = ExcelTimeToSeconds(self.time) or 0.0
-		self.integerSeconds = int('{:.3f}'.format(self.time)[:-4])			
 		self.bonus = ExcelTimeToSeconds(self.bonus) or 0.0
 		self.penalty = ExcelTimeToSeconds(self.penalty) or 0.0
+		self.time = ExcelTimeToSeconds(self.time) or 0.0
 		self.time += self.penalty	# Always include the time penalty.
+		self.integerSeconds = int('{:.3f}'.format(self.time)[:-4])			
 		
 		if not self.place:
 			self.place = self.row - 1

@@ -89,6 +89,12 @@ class MainWin( wx.Frame ):
 		vs.Add( branding, flag=wx.ALL, border=4 )
 		horizontalControlSizer.Add( vs )
 
+		self.openExcel = wx.Button( self, label=_('Open Excel File...') )
+		self.openExcel.Bind( wx.EVT_BUTTON, self.onOpenExcel )
+		
+		horizontalControlSizer.AddSpacer( 48 )
+		horizontalControlSizer.Add( self.openExcel, flag=wx.ALIGN_RIGHT|wx.ALL, border=4 )
+				
 		inputBoxSizer.Add( horizontalControlSizer, flag=wx.EXPAND )
 		
 		self.stageList = ListMixCtrl( self, style=wx.LC_REPORT, size=(-1,160) )
@@ -118,6 +124,13 @@ class MainWin( wx.Frame ):
 		mainSizer.Add( self.saveAsExcelButton, flag=wx.ALL, border = 4 )
 		
 		self.SetSizer( mainSizer )
+		
+	def onOpenExcel( self, event ):
+		filename = self.fileBrowse.GetValue()
+		if not filename:
+			return
+		wait = wx.BusyCursor()
+		Utils.LaunchApplication( filename )
 		
 	def onTutorial( self, event ):
 		if not Utils.MessageOKCancel( self, u"\n".join( [
@@ -216,6 +229,7 @@ class MainWin( wx.Frame ):
 		
 		self.filehistory.AddFileToHistory( self.fname )
 		self.filehistory.Save( self.config )
+		self.fileBrowse.SetValue( self.fname )
 		
 		wait = wx.BusyCursor()
 		labelSave, backgroundColourSave = self.updateButton.GetLabel(), self.updateButton.GetForegroundColour()

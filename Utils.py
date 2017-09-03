@@ -279,11 +279,15 @@ def getImageFolder():	return imageFolder
 def getHtmlFolder():	return htmlFolder
 def getHtmlDocFolder():	return htmlDocFolder
 
-def LaunchApplication( fname ):
-	if os.name is 'nt':
-		subprocess.call(('cmd', '/C', 'start', '', fname))
-	elif sys.platform.startswith('darwin'):
-		subprocess.call(('open', fname))
-	else:
-		subprocess.call( ('xdg-open', fname) )
+if sys.platform == 'darwin':
+	webbrowser.register("chrome", None, webbrowser.MacOSXOSAScript('chrome'), -1)
+
+def LaunchApplication( fnames ):
+	for fname in (fnames if isinstance(fnames, list) else [fnames]):
+		if os.name is 'nt':
+			subprocess.call(('cmd', '/C', 'start', '', fname))
+		elif sys.platform.startswith('darwin'):
+			subprocess.call(('open', fname))
+		else:
+			subprocess.call(('xdg-open', fname))	# Linux
 	
