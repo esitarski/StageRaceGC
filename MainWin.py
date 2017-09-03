@@ -279,6 +279,7 @@ class MainWin( wx.Frame ):
 			)
 			return
 			
+		wait = wx.BusyCursor()
 		Utils.LaunchApplication( fname_excel )
 
 # Set log file location.
