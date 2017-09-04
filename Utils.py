@@ -151,7 +151,7 @@ def fieldToHeader( f, multi_line=False ):
 		f = f[:-5]
 	f = f.replace(u'_', u' ').replace(u'uci', u'UCI')
 	s = u' '.join( w[0].upper() + w[1:] for w in f.split() )
-	s = s.replace(u' With ', u' with ').replace(u' In ', u' in ')
+	s = s.replace(u' With ', u' with ').replace(u' In ', u' in ').replace(u' Of ', u' of ')
 	if multi_line:
 		fields = s.split()
 		if len(fields) == 2:

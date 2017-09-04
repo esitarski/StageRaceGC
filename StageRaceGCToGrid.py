@@ -159,7 +159,7 @@ def StageRaceGCToGrid( notebook ):
 	def writeTeamGC():
 		headers = (
 			['Place', 'Team', 'Combined\nTime'] +
-			['# {}\nPlaces'.format(Utils.ordinal(i+1)) for i in xrange(len(model.all_teams))] +
+			['{}s'.format(Utils.ordinal(i+1)) for i in xrange(len(model.all_teams))] +
 			['Best\nRider GC']
 		)
 		

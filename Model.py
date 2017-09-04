@@ -359,7 +359,16 @@ class Stage( object ):
 			self.errors.append( 'Unrecognied climb category (must be 4C, 3C, 2C, 1C or HC)' )
 		self.climb_categories = [max(min(c, 4), 0) for c in self.climb_categories]
 		return self.errors
-		
+	
+	def isTTT( self ):
+		return self.sheet_name.endswith('-TTT')
+	
+	def isITT( self ):
+		return self.sheet_name.endswith('-ITT')
+	
+	def isRR( self ):
+		return self.sheet_name.endswith('-RR')
+	
 	def __len__( self ):
 		return len(self.results)
 	
@@ -540,7 +549,8 @@ class Model( object):
 				stageLast.total_time_with_bonuses_plus_penalties[r.bib] += time_with_bonus
 				stageLast.total_time_with_bonuses_plus_penalties_plus_second_fractions[r.bib] += \
 					time_with_bonuses_plus_penalties_plus_second_fractions if isinstance(stage, (StageITT, StageTTT)) else time_with_bonus
-				stageLast.sum_of_places[r.bib] += r.place
+				if not isinstance(stage, StageTTT):
+					stageLast.sum_of_places[r.bib] += r.place
 				
 				if stage == stageLast:
 					stageLast.last_stage_place[r.bib] = r.place
