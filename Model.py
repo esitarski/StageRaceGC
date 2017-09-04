@@ -5,6 +5,7 @@ import sys
 import six
 import math
 import datetime
+import operator
 from collections import defaultdict, namedtuple
 from ValueContext import ValueContext as VC
 from Excel import GetExcelReader
@@ -437,6 +438,7 @@ IndividualClassification = namedtuple( 'IndividualClassification', [
 		'retired_stage',
 		'total_time_with_bonuses_plus_penalties',
 		'total_time_with_bonuses_plus_penalties_plus_second_fractions',
+		'sum_of_places',
 		'last_stage_place',
 		'bib',
 	]
@@ -513,7 +515,7 @@ class Model( object):
 			for r in stage.results:
 				if not isinstance(r.place, int) and r not in stageLast.retired:
 					stageLast.retired.add( r.bib )
-					ic.append( IndividualClassification(i, 0, 0, 0, r.bib) )
+					ic.append( IndividualClassification(i, 0, 0, 0, 0, r.bib) )
 			if stage == stageLast:
 				break
 
@@ -522,6 +524,7 @@ class Model( object):
 		stageLast.total_time_without_bonuses = defaultdict( float )
 		stageLast.total_time_with_bonuses_plus_penalties = defaultdict( float )
 		stageLast.total_time_with_bonuses_plus_penalties_plus_second_fractions = defaultdict( float )
+		stageLast.sum_of_places = defaultdict( int )
 		stageLast.last_stage_place = defaultdict( int )
 		for stage in self.stages:
 			for r in stage.results:
@@ -537,6 +540,7 @@ class Model( object):
 				stageLast.total_time_with_bonuses_plus_penalties[r.bib] += time_with_bonus
 				stageLast.total_time_with_bonuses_plus_penalties_plus_second_fractions[r.bib] += \
 					time_with_bonuses_plus_penalties_plus_second_fractions if isinstance(stage, (StageITT, StageTTT)) else time_with_bonus
+				stageLast.sum_of_places[r.bib] += r.place
 				
 				if stage == stageLast:
 					stageLast.last_stage_place[r.bib] = r.place
@@ -550,18 +554,20 @@ class Model( object):
 					0,
 					stageLast.total_time_with_bonuses_plus_penalties[bib],
 					stageLast.total_time_with_bonuses_plus_penalties_plus_second_fractions[bib],
+					stageLast.sum_of_places[bib],
 					stageLast.last_stage_place[bib],
 					bib
 				)
 			)
 
 		# Sort to get the unique classification.
-		ic.sort( key = lambda c: (
-				c.retired_stage,
-				c.total_time_with_bonuses_plus_penalties,
-				c.total_time_with_bonuses_plus_penalties_plus_second_fractions,
-				c.last_stage_place,
-				c.bib,
+		ic.sort( key = operator.attrgetter(
+				'retired_stage',
+				'total_time_with_bonuses_plus_penalties',
+				'total_time_with_bonuses_plus_penalties_plus_second_fractions',
+				'sum_of_places',
+				'last_stage_place',
+				'bib',
 			)
 		)
 		stageLast.individual_gc = ic
