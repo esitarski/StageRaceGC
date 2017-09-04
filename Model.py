@@ -138,7 +138,7 @@ class Result( object ):
 		'stagesprint',
 	)
 	NumericFields = set([
-		'bib', 'row', 'place', 'time', 'bonus', 'penalty',
+		'bib', 'row', 'place', 'time', 'bonus', 'penalty', 'gap',
 		'kom1', 'kom2', 'kom3', 'kom4', 'kom5', 'kom6', 'kom7', 'kom8', 'kom9',
 		'sprint1', 'sprint2', 'sprint3', 'sprint4', 'sprint5', 'sprint6', 'sprint7', 'sprint8', 'sprint9',
 		'stagesprint',
@@ -450,6 +450,7 @@ IndividualClassification = namedtuple( 'IndividualClassification', [
 		'sum_of_places',
 		'last_stage_place',
 		'bib',
+		'gap',
 	]
 )
 
@@ -458,6 +459,7 @@ TeamClassification = namedtuple( 'TeamClassification', [
 		'sum_best_top_places',
 		'best_place',
 		'team',
+		'gap',
 	]
 )
 
@@ -524,7 +526,7 @@ class Model( object):
 			for r in stage.results:
 				if not isinstance(r.place, int) and r not in stageLast.retired:
 					stageLast.retired.add( r.bib )
-					ic.append( IndividualClassification(i, 0, 0, 0, 0, r.bib) )
+					ic.append( IndividualClassification(i, 0, 0, 0, 0, r.bib, 0) )
 			if stage == stageLast:
 				break
 
@@ -566,20 +568,26 @@ class Model( object):
 					stageLast.total_time_with_bonuses_plus_penalties_plus_second_fractions[bib],
 					stageLast.sum_of_places[bib],
 					stageLast.last_stage_place[bib],
-					bib
+					bib,
+					0,	# Gap placeholder.
 				)
 			)
 
-		# Sort to get the unique classification.
-		ic.sort( key = operator.attrgetter(
-				'retired_stage',
-				'total_time_with_bonuses_plus_penalties',
-				'total_time_with_bonuses_plus_penalties_plus_second_fractions',
-				'sum_of_places',
-				'last_stage_place',
-				'bib',
+		if ic:
+			# Sort to get the unique classification.
+			ic.sort( key = operator.attrgetter(
+					'retired_stage',
+					'total_time_with_bonuses_plus_penalties',
+					'total_time_with_bonuses_plus_penalties_plus_second_fractions',
+					'sum_of_places',
+					'last_stage_place',
+					'bib',
+				)
 			)
-		)
+			leaderTime = ic[0].total_time_with_bonuses_plus_penalties
+			for i in xrange(1, len(ic)):
+				ic[i] = ic[i]._replace(gap=ic[i].total_time_with_bonuses_plus_penalties-leaderTime)
+		
 		stageLast.individual_gc = ic
 		
 	def getTeamStageClassifications( self ):
@@ -613,11 +621,22 @@ class Model( object):
 				top_count[team] += 1
 			
 			stage.team_classification = [
-				TeamClassification(sum_best_top_times[team], sum_best_top_places[team], best_place[team], team,)
+				TeamClassification(sum_best_top_times[team], sum_best_top_places[team], best_place[team], team, 0)
 					for team in sum_best_top_times.iterkeys() if top_count[team] == 3
 			]
 			
-			stage.team_classification.sort()
+			if stage.team_classification:
+				stage.team_classification.sort( key=operator.attrgetter(
+						'sum_best_top_times',
+						'sum_best_top_places',
+						'best_place',
+					)
+				)
+				leaderTime = stage.team_classification[0].sum_best_top_times.value
+				for i in xrange(1, len(stage.team_classification)):
+					gap = stage.team_classification[i].sum_best_top_times.value -  leaderTime
+					stage.team_classification[i] = stage.team_classification[i]._replace(gap=gap)
+				
 		
 	def getTeamGC( self ):
 		self.team_gc = []

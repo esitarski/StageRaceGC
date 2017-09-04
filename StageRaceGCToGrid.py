@@ -59,7 +59,7 @@ def StageRaceGCToGrid( notebook ):
 	
 	#---------------------------------------------------------------------------------------
 	def writeIC( stage ):
-		ic_fields = Model.IndividualClassification._fields[1:-1]
+		ic_fields = ['gap'] + list(Model.IndividualClassification._fields[1:-1])
 		riderFields = set( model.registration.getFieldsInUse() )
 		headers = (
 			['place', 'bib', 'last_name', 'first_name', 'team'] +
@@ -81,6 +81,7 @@ def StageRaceGCToGrid( notebook ):
 			grid.SetColLabelValue( col, Utils.fieldToHeader(h, True) )
 
 		rowNum = 0
+		gapLast = None
 		for place, r in enumerate(stage.individual_gc, 1):
 			try:
 				rider = model.registration.bibToRider[r.bib]
@@ -104,6 +105,8 @@ def StageRaceGCToGrid( notebook ):
 				grid.SetCellValue( rowNum, col, unicode(rider.license) ); col += 1
 			
 			if r.retired_stage == 0:
+				grid.SetCellValue( rowNum, col, Utils.formatTime(r.gap, twoDigitHours=True) if gapLast != r.gap else 's.t.' ); col += 1
+				gapLast = r.gap
 				grid.SetCellValue( rowNum, col, Utils.formatTime(r.total_time_with_bonuses_plus_penalties, twoDigitHours=True) ); col += 1
 				grid.SetCellValue( rowNum, col, Utils.formatTime(r.total_time_with_bonuses_plus_penalties_plus_second_fractions, twoDigitHours=True, extraPrecision=True) ); col += 1
 				grid.SetCellValue( rowNum, col, unicode(r.sum_of_places) ); col += 1
@@ -118,7 +121,7 @@ def StageRaceGCToGrid( notebook ):
 	#---------------------------------------------------------------------------------------
 	def writeTeamClass( stage ):
 		
-		headers = ['Place', 'Team', 'Combined\nTimes', 'Combined\nPlaces', 'Best\nRider GC']
+		headers = ['Place', 'Team', 'Gap', 'Combined\nTimes', 'Combined\nPlaces', 'Best\nRider GC']
 		
 		grid = ReorderableGrid( notebook )
 		grid.CreateGrid( len(stage.team_classification), len(headers) )
@@ -133,11 +136,14 @@ def StageRaceGCToGrid( notebook ):
 			grid.SetColLabelValue( col, h )
 		
 		rowNum = 0
+		gapLast = None
 		for place, tc in enumerate(stage.team_classification, 1):
 			col = 0
 			grid.SetCellValue( rowNum, col, unicode(place) ); col += 1
 			grid.SetCellValue( rowNum, col, tc.team ); col += 1
 			
+			grid.SetCellValue( rowNum, col, Utils.formatTime(tc.gap, twoDigitHours=True) if tc.gap != gapLast else 's.t.' ); col += 1
+			gapLast = tc.gap
 			grid.SetCellValue( rowNum, col, Utils.formatTime(tc.sum_best_top_times.value, forceHours=True) )
 			setComment( rowNum, col, formatContext(tc.sum_best_top_times.context), {'width':256} )
 			col += 1
@@ -158,7 +164,7 @@ def StageRaceGCToGrid( notebook ):
 	#---------------------------------------------------------------------------------------
 	def writeTeamGC():
 		headers = (
-			['Place', 'Team', 'Combined\nTime'] +
+			['Place', 'Team', 'Gap', 'Combined\nTime'] +
 			['{}s'.format(Utils.ordinal(i+1)) for i in xrange(len(model.all_teams))] +
 			['Best\nRider GC']
 		)
@@ -176,12 +182,21 @@ def StageRaceGCToGrid( notebook ):
 			grid.SetColLabelValue( col, h )
 		
 		rowNum = 0
+		leaderTime = None
+		gapLast = None
 		for place, tgc in enumerate(model.team_gc, 1):
 			col = 0
 			grid.SetCellValue( rowNum, col, unicode(place) ); col += 1
 			grid.SetCellValue( rowNum, col, unicode(tgc[-1]) ); col += 1
 			
-			grid.SetCellValue( rowNum, col, Utils.formatTime(tgc[0].value, forceHours=True) )
+			combinedTime = tgc[0].value
+			if leaderTime is None:
+				leaderTime = combinedTime
+			gap = combinedTime - leaderTime
+			grid.SetCellValue( rowNum, col, Utils.formatTime(gap, twoDigitHours=True) if gap != gapLast else 's.t.' ); col += 1
+			gapLast = gap
+			
+			grid.SetCellValue( rowNum, col, Utils.formatTime(combinedTime, forceHours=True) )
 			setComment( rowNum, col, formatContextList(tgc[0].context), {'width':512} )
 			col += 1
 			
