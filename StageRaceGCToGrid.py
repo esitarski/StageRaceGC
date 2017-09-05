@@ -5,6 +5,9 @@ import Utils
 import Model
 from ReorderableGrid import ReorderableGrid
 
+sameGap = '-'
+sameTime = 's.t'
+
 lastKey = None
 def StageRaceGCToGrid( notebook ):
 	notebook.DeleteAllPages()
@@ -82,6 +85,7 @@ def StageRaceGCToGrid( notebook ):
 
 		rowNum = 0
 		gapLast = None
+		timeLast = None
 		for place, r in enumerate(stage.individual_gc, 1):
 			try:
 				rider = model.registration.bibToRider[r.bib]
@@ -105,9 +109,15 @@ def StageRaceGCToGrid( notebook ):
 				grid.SetCellValue( rowNum, col, unicode(rider.license) ); col += 1
 			
 			if r.retired_stage == 0:
-				grid.SetCellValue( rowNum, col, Utils.formatTime(r.gap, twoDigitHours=True) if gapLast != r.gap else 's.t.' ); col += 1
+				grid.SetCellValue( rowNum, col, Utils.formatTime(r.gap, twoDigitHours=True) if gapLast != r.gap else sameGap )
 				gapLast = r.gap
-				grid.SetCellValue( rowNum, col, Utils.formatTime(r.total_time_with_bonuses_plus_penalties, twoDigitHours=True) ); col += 1
+				col += 1
+				
+				timeCur = r.total_time_with_bonuses_plus_penalties
+				grid.SetCellValue( rowNum, col, Utils.formatTime(timeCur, twoDigitHours=True) if timeCur != timeLast else sameTime )
+				timeLast = timeCur
+				col += 1
+				
 				grid.SetCellValue( rowNum, col, Utils.formatTime(r.total_time_with_bonuses_plus_penalties_plus_second_fractions, twoDigitHours=True, extraPrecision=True) ); col += 1
 				grid.SetCellValue( rowNum, col, unicode(r.sum_of_places) ); col += 1
 				grid.SetCellValue( rowNum, col, unicode(r.last_stage_place) ); col += 1
@@ -137,14 +147,19 @@ def StageRaceGCToGrid( notebook ):
 		
 		rowNum = 0
 		gapLast = None
+		timeLast = None
 		for place, tc in enumerate(stage.team_classification, 1):
 			col = 0
 			grid.SetCellValue( rowNum, col, unicode(place) ); col += 1
 			grid.SetCellValue( rowNum, col, tc.team ); col += 1
 			
-			grid.SetCellValue( rowNum, col, Utils.formatTime(tc.gap, twoDigitHours=True) if tc.gap != gapLast else 's.t.' ); col += 1
+			grid.SetCellValue( rowNum, col, Utils.formatTime(tc.gap, twoDigitHours=True) if tc.gap != gapLast else sameGap )
 			gapLast = tc.gap
-			grid.SetCellValue( rowNum, col, Utils.formatTime(tc.sum_best_top_times.value, forceHours=True) )
+			col += 1
+			
+			timeCur = tc.sum_best_top_times.value
+			grid.SetCellValue( rowNum, col, Utils.formatTime(timeCur, forceHours=True) if timeCur != timeLast else sameTime )
+			timeLast = timeCur
 			setComment( rowNum, col, formatContext(tc.sum_best_top_times.context), {'width':256} )
 			col += 1
 			
@@ -184,6 +199,7 @@ def StageRaceGCToGrid( notebook ):
 		rowNum = 0
 		leaderTime = None
 		gapLast = None
+		timeLast = None
 		for place, tgc in enumerate(model.team_gc, 1):
 			col = 0
 			grid.SetCellValue( rowNum, col, unicode(place) ); col += 1
@@ -193,10 +209,11 @@ def StageRaceGCToGrid( notebook ):
 			if leaderTime is None:
 				leaderTime = combinedTime
 			gap = combinedTime - leaderTime
-			grid.SetCellValue( rowNum, col, Utils.formatTime(gap, twoDigitHours=True) if gap != gapLast else 's.t.' ); col += 1
+			grid.SetCellValue( rowNum, col, Utils.formatTime(gap, twoDigitHours=True) if gap != gapLast else sameGap ); col += 1
 			gapLast = gap
 			
-			grid.SetCellValue( rowNum, col, Utils.formatTime(combinedTime, forceHours=True) )
+			grid.SetCellValue( rowNum, col, Utils.formatTime(combinedTime, forceHours=True) if combinedTime != timeLast else sameTime)
+			timeLast = combinedTime
 			setComment( rowNum, col, formatContextList(tgc[0].context), {'width':512} )
 			col += 1
 			
