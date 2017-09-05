@@ -140,8 +140,6 @@ def StageRaceGCToExcel( fname_excel, model ):
 		rowNum +=1
 		
 		leaderTime = None
-		gapLast = None
-		timeLast = None
 		for place, tgc in enumerate(model.team_gc, 1):
 			col = 0
 			fit_sheet.write( rowNum, col, place ); col += 1
