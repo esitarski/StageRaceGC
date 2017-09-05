@@ -6,6 +6,9 @@ import Utils
 import Model
 from FitSheetWrapper import FitSheetWrapper
 
+sameGap = '-'
+sameTime = 's.t'
+
 def StageRaceGCToExcel( fname_excel, model ):
 	def getRiderInfo( bib ):
 		rider = model.registration.bibToRider[bib]
@@ -45,7 +48,7 @@ def StageRaceGCToExcel( fname_excel, model ):
 	def writeIC( ws, stage ):
 		fit_sheet = FitSheetWrapper( ws )
 		
-		ic_fields = Model.IndividualClassification._fields[1:-1]
+		ic_fields = ['gap'] + list(Model.IndividualClassification._fields[1:-1])
 		riderFields = set( model.registration.getFieldsInUse() )
 		headers = (
 			['Place', 'Bib', 'Last Name', 'First Name', 'Team'] +
@@ -82,6 +85,7 @@ def StageRaceGCToExcel( fname_excel, model ):
 				fit_sheet.write( rowNum, col, rider.license ); col += 1
 			
 			if r.retired_stage == 0:
+				fit_sheet.write( rowNum, col, r.gap / (24.0*60.0*60.0), time_format ); col += 1
 				fit_sheet.write( rowNum, col, r.total_time_with_bonuses_plus_penalties / (24.0*60.0*60.0), time_format ); col += 1
 				fit_sheet.write( rowNum, col, r.total_time_with_bonuses_plus_penalties_plus_second_fractions / (24.0*60.0*60.0), high_precision_time_format ); col += 1
 				fit_sheet.write( rowNum, col, r.last_stage_place ); col += 1
@@ -92,7 +96,7 @@ def StageRaceGCToExcel( fname_excel, model ):
 	def writeTeamClass( ws, stage ):
 		fit_sheet = FitSheetWrapper( ws )
 		
-		headers = ['Place', 'Team', 'Combined Times', 'Combined Places', 'Best Rider GC']
+		headers = ['Place', 'Team', 'Gap', 'Combined Times', 'Combined Places', 'Best Rider GC']
 		
 		rowNum = 0
 		for c, h in enumerate(headers):
@@ -103,6 +107,9 @@ def StageRaceGCToExcel( fname_excel, model ):
 			col = 0
 			fit_sheet.write( rowNum, col, place ); col += 1
 			fit_sheet.write( rowNum, col, tc.team ); col += 1
+			
+			fit_sheet.write( rowNum, col, tc.gap / (24.0*60.0*60.0), time_format )
+			col += 1
 			
 			fit_sheet.write( rowNum, col, tc.sum_best_top_times.value / (24.0*60.0*60.0), time_format )
 			# ws.write_comment( rowNum, col, formatContext(tc.sum_best_top_times.context), comment_style )
@@ -122,8 +129,8 @@ def StageRaceGCToExcel( fname_excel, model ):
 		fit_sheet = FitSheetWrapper( ws )
 		
 		headers = (
-			['Place', 'Team', 'Combined Time'] +
-			['# {} Places'.format(Utils.ordinal(i+1)) for i in xrange(len(model.all_teams))] +
+			['Place', 'Team', 'Gap', 'Combined Time'] +
+			['# {}s'.format(Utils.ordinal(i+1)) for i in xrange(len(model.all_teams))] +
 			['Best Rider GC']
 		)
 		
@@ -132,13 +139,24 @@ def StageRaceGCToExcel( fname_excel, model ):
 			fit_sheet.write( rowNum, c, h, bold_format )
 		rowNum +=1
 		
+		leaderTime = None
+		gapLast = None
+		timeLast = None
 		for place, tgc in enumerate(model.team_gc, 1):
 			col = 0
 			fit_sheet.write( rowNum, col, place ); col += 1
 			
 			fit_sheet.write( rowNum, col, tgc[-1] ); col += 1
 			
-			fit_sheet.write( rowNum, col, tgc[0].value / (24.0*60.0*60.0), time_format )
+			timeCur = tgc[0].value
+			if leaderTime is None:
+				leaderTime = timeCur
+				
+			gap = timeCur - leaderTime
+			fit_sheet.write( rowNum, col, gap / (24.0*60.0*60.0), time_format )
+			col += 1
+			
+			fit_sheet.write( rowNum, col, timeCur / (24.0*60.0*60.0), time_format )
 			# ws.write_comment( rowNum, col, formatContextList(tgc[0].context), wide_comment_style )
 			col += 1
 			
