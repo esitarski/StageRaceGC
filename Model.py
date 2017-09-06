@@ -180,7 +180,6 @@ class Result( object ):
 		self.bonus = ExcelTimeToSeconds(self.bonus) or 0.0
 		self.penalty = ExcelTimeToSeconds(self.penalty) or 0.0
 		self.time = ExcelTimeToSeconds(self.time) or 0.0
-		self.time += self.penalty	# Always include the time penalty.
 		self.integerSeconds = int('{:.3f}'.format(self.time)[:-4])			
 		
 		try:
@@ -446,7 +445,7 @@ class TeamPenalties( object ):
 IndividualClassification = namedtuple( 'IndividualClassification', [
 		'retired_stage',
 		'total_time_with_bonuses_plus_penalties',
-		'total_time_with_bonuses_plus_penalties_plus_second_fractions',
+		'total_time_with_bonus_plus_penalty_plus_second_fraction',
 		'sum_of_places',
 		'last_stage_place',
 		'bib',
@@ -532,9 +531,9 @@ class Model( object):
 
 		# Calculate the classification criteria.
 		stageLast.bibs = set()
-		stageLast.total_time_without_bonuses = defaultdict( float )
+		stageLast.total_time_without_bonus_or_penalty = defaultdict( float )
 		stageLast.total_time_with_bonuses_plus_penalties = defaultdict( float )
-		stageLast.total_time_with_bonuses_plus_penalties_plus_second_fractions = defaultdict( float )
+		stageLast.total_time_with_bonus_plus_penalty_plus_second_fraction = defaultdict( float )
 		stageLast.sum_of_places = defaultdict( int )
 		stageLast.last_stage_place = defaultdict( int )
 		for stage in self.stages:
@@ -543,14 +542,14 @@ class Model( object):
 					continue
 				stageLast.bibs.add( r.bib )
 				
-				time_without_bonus = r.integerSeconds
-				time_with_bonus = time_without_bonus - r.bonus
-				time_with_bonuses_plus_penalties_plus_second_fractions = r.time - r.bonus
+				time_without_bonus_or_penalty = r.integerSeconds
+				time_with_bonus_and_penalty = r.integerSeconds - r.bonus + r.penalty
+				time_with_bonus_plus_penalty_plus_second_fraction = r.time - r.bonus + r.penalty
 				
-				stageLast.total_time_without_bonuses[r.bib] += time_without_bonus
-				stageLast.total_time_with_bonuses_plus_penalties[r.bib] += time_with_bonus
-				stageLast.total_time_with_bonuses_plus_penalties_plus_second_fractions[r.bib] += \
-					time_with_bonuses_plus_penalties_plus_second_fractions if isinstance(stage, (StageITT, StageTTT)) else time_with_bonus
+				stageLast.total_time_without_bonus_or_penalty[r.bib] += time_without_bonus_or_penalty
+				stageLast.total_time_with_bonuses_plus_penalties[r.bib] += time_with_bonus_and_penalty
+				stageLast.total_time_with_bonus_plus_penalty_plus_second_fraction[r.bib] += \
+					time_with_bonus_plus_penalty_plus_second_fraction if isinstance(stage, (StageITT, StageTTT)) else time_with_bonus_and_penalty
 				if not isinstance(stage, StageTTT):
 					stageLast.sum_of_places[r.bib] += r.place
 				
@@ -565,7 +564,7 @@ class Model( object):
 			ic.append( IndividualClassification(
 					0,
 					stageLast.total_time_with_bonuses_plus_penalties[bib],
-					stageLast.total_time_with_bonuses_plus_penalties_plus_second_fractions[bib],
+					stageLast.total_time_with_bonus_plus_penalty_plus_second_fraction[bib],
 					stageLast.sum_of_places[bib],
 					stageLast.last_stage_place[bib],
 					bib,
@@ -578,7 +577,7 @@ class Model( object):
 			ic.sort( key = operator.attrgetter(
 					'retired_stage',
 					'total_time_with_bonuses_plus_penalties',
-					'total_time_with_bonuses_plus_penalties_plus_second_fractions',
+					'total_time_with_bonus_plus_penalty_plus_second_fraction',
 					'sum_of_places',
 					'last_stage_place',
 					'bib',

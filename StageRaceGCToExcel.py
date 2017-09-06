@@ -87,7 +87,7 @@ def StageRaceGCToExcel( fname_excel, model ):
 			if r.retired_stage == 0:
 				fit_sheet.write( rowNum, col, r.gap / (24.0*60.0*60.0), time_format ); col += 1
 				fit_sheet.write( rowNum, col, r.total_time_with_bonuses_plus_penalties / (24.0*60.0*60.0), time_format ); col += 1
-				fit_sheet.write( rowNum, col, r.total_time_with_bonuses_plus_penalties_plus_second_fractions / (24.0*60.0*60.0), high_precision_time_format ); col += 1
+				fit_sheet.write( rowNum, col, r.total_time_with_bonus_plus_penalty_plus_second_fraction / (24.0*60.0*60.0), high_precision_time_format ); col += 1
 				fit_sheet.write( rowNum, col, r.last_stage_place ); col += 1
 			
 			rowNum +=1

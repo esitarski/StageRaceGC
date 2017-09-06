@@ -118,7 +118,7 @@ def StageRaceGCToGrid( notebook ):
 				timeLast = timeCur
 				col += 1
 				
-				grid.SetCellValue( rowNum, col, Utils.formatTime(r.total_time_with_bonuses_plus_penalties_plus_second_fractions, twoDigitHours=True, extraPrecision=True) ); col += 1
+				grid.SetCellValue( rowNum, col, Utils.formatTime(r.total_time_with_bonus_plus_penalty_plus_second_fraction, twoDigitHours=True, extraPrecision=True) ); col += 1
 				grid.SetCellValue( rowNum, col, unicode(r.sum_of_places) ); col += 1
 				grid.SetCellValue( rowNum, col, unicode(r.last_stage_place) ); col += 1
 			
