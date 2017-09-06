@@ -113,7 +113,7 @@ def StageRaceGCToGrid( notebook ):
 				gapLast = r.gap
 				col += 1
 				
-				timeCur = r.total_time_with_bonuses_plus_penalties
+				timeCur = r.total_time_with_bonus_plus_penalty
 				grid.SetCellValue( rowNum, col, Utils.formatTime(timeCur, twoDigitHours=True) if timeCur != timeLast else sameTime )
 				timeLast = timeCur
 				col += 1
