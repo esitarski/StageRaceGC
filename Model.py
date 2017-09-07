@@ -123,6 +123,12 @@ def ExcelTimeToSeconds( t ):
 		return Utils.StrToSeconds( t.replace('"',':').replace("'",':') )
 	return t
 	
+def setValueAt( a, i, v ):
+	if i >= 0:
+		if len(a) <= i:
+			a.extend( [0] * (1+i-len(a)) )
+		a[i] = v
+	
 reNonDigit = re.compile( '[^0-9]' )
 	
 class Result( object ):
@@ -144,6 +150,18 @@ class Result( object ):
 		'stagesprint',
 	])
 	
+	deferred = []
+	
+	@staticmethod
+	def processDeferred( bibResult ):
+		for pointsType, bib, i, v in Result.deferred:
+			try:
+				result = bibResult[bib]
+			except:
+				continue				
+			setValueAt( result.kom if pointsType == 'kom' else result.sprint, i-1, v )
+		Result.deferred = []
+	
 	def __init__( self, **kwargs ):
 		self.kom = []
 		self.sprint = []
@@ -161,13 +179,26 @@ class Result( object ):
 		def setListValue( a, k, v ):
 			try:
 				i = int(reNonDigit.sub('', k))
+			except:
+				return
+				
+			# Check if there is a bib number for another result.
+			if not isinstance(v, (float, long, int)) and ',' in v:
+				bib, v = v.split(',', 2)
+				try:
+					bib = int(bib.strip())
+					v = int(v.strip())
+				except:
+					return
+				self.deferred.append( ('kom' if a == self.kom else 'sprint', bib, i, v) )
+				return
+				
+			# Otherwise, add this result to this rider.
+			try:
 				v = int(v)
 			except:
 				return
-			if i >= 0:
-				if len(a) < i:
-					a.extend( [0] * (i-len(a)) )
-				a[i-1] = v
+			setValueAt( a, i-1, v )
 		
 		for k, v in kwargs.iteritems():
 			if k.startswith('kom'):
@@ -332,6 +363,9 @@ class Stage( object ):
 		self.results.append( result )
 		if result.place is None:
 			result.place = len(self.results)
+			
+	def processDeferred( self ):
+		Result.processDeferred( {r.bib:r for r in self.results} )
 		
 	def addRow( self, row, header_row ):
 		if 'bib' not in row:
@@ -353,9 +387,11 @@ class Stage( object ):
 		content, self.climb_categories, self.errors, header_row = readSheet( reader, self.sheet_name, Result.Fields )
 		for c in content:
 			self.addRow( c, header_row )
+		self.processDeferred()
+		
 		bad_categories = [c for c in self.climb_categories if not 0 <= c <= 4]
 		if bad_categories:
-			self.errors.append( 'Unrecognied climb category (must be 4C, 3C, 2C, 1C or HC)' )
+			self.errors.append( 'Unrecognized climb category (must be 4C, 3C, 2C, 1C or HC)' )
 		self.climb_categories = [max(min(c, 4), 0) for c in self.climb_categories]
 		return self.errors
 	
