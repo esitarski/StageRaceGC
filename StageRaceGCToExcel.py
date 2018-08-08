@@ -80,7 +80,7 @@ def StageRaceGCToExcel( fname_excel, model ):
 			fit_sheet.write( rowNum, col, rider.team ); col += 1
 			
 			if 'uci_id' in riderFields:
-				fit_sheet.write( rowNum, col, rider.team ); col += 1
+				fit_sheet.write( rowNum, col, rider.uci_id ); col += 1
 			if 'license' in riderFields:
 				fit_sheet.write( rowNum, col, rider.license ); col += 1
 			

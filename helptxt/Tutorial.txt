@@ -44,7 +44,7 @@ License|Rider's local Licence code
 
 This is the "master" rider data sheet.
 All rider data will be referenced from this sheet, even if it is repeated on the results sheets.
-Many rider data changes on this sheet only.
+Make rider data changes on this sheet only.
 
 ## XXX-RR Sheet(s)
 
