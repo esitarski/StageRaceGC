@@ -41,8 +41,8 @@ class Rider:
 				# Find the last upper-case letter preceeding a space.  Assume that is the last char in the last_name
 				j = 0
 				i = 0
-				while 1:
-					i = name.find( u' ', i )
+				while True:
+					i = name.find( ' ', i )
 					if i < 0:
 						if not j:
 							j = len(name)
@@ -443,7 +443,7 @@ class TeamPenalty:
 			pass
 			
 	def __repr__( self ):
-		return u'TeamPenalty({})'.format( ','.join( u'{}'.format(getattr(self, a)) for a in self.Fields ) )
+		return 'TeamPenalty({})'.format( ','.join( u'{}'.format(getattr(self, a)) for a in self.Fields ) )
 
 class TeamPenalties:
 	def __init__( self, sheet_name = 'Team Penalties' ):
@@ -501,7 +501,7 @@ TeamClassification = namedtuple( 'TeamClassification', [
 	]
 )
 
-class Model( object):
+class Model:
 	def __init__( self ):
 		self.registration = Registration()
 		self.team_penalties = TeamPenalties()

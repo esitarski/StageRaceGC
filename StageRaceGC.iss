@@ -9,8 +9,6 @@ Compression=lzma2/ultra64
 SolidCompression=yes
 
 [Registry]
-; Automatically configure StageRaceGC to launch .smr files.
-Root: HKCR; Subkey: ".smr"; ValueType: string; ValueName: ""; ValueData: "StageRaceGC"; Flags: uninsdeletevalue
 Root: HKCR; Subkey: "StageRaceGC"; ValueType: string; ValueName: ""; ValueData: "StageRaceGC Race File"; Flags: uninsdeletekey
 Root: HKCR; Subkey: "StageRaceGC\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\StageRaceGC.exe,0"
 Root: HKCR; Subkey: "StageRaceGC\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\StageRaceGC.exe"" ""%1"""
