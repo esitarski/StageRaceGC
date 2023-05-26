@@ -4,7 +4,7 @@ import datetime
 import xlsxwriter
 import Utils
 import Model
-from FitSheetWrapper import FitSheetWrapper
+from FitSheetWrapper import FitSheetWrapperXLSX
 
 sameGap = '-'
 sameTime = 's.t'
@@ -12,27 +12,27 @@ sameTime = 's.t'
 def StageRaceGCToExcel( fname_excel, model ):
 	def getRiderInfo( bib ):
 		rider = model.registration.bibToRider[bib]
-		return u'{}: {}'.format(bib, rider.results_name)
+		return '{}: {}'.format(bib, rider.results_name)
 		
 	def formatContext( context ):
 		lines = []
 		for c in context:
 			if len(c) == 3:
 				t, p, bib = c
-				lines.append( u'{}  {} ({})'.format(getRiderInfo(bib), Utils.formatTime(t), Utils.ordinal(p)) )
+				lines.append( '{}  {} ({})'.format(getRiderInfo(bib), Utils.formatTime(t), Utils.ordinal(p)) )
 			elif len(c) == 2:
 				p, bib = c
-				lines.append( u'{} ({})'.format(getRiderInfo(bib), Utils.ordinal(p)) )
+				lines.append( '{} ({})'.format(getRiderInfo(bib), Utils.ordinal(p)) )
 			elif len(c) == 1:
 				bib = c[0]
 				lines.append( getRiderInfo(bib) )
 			else:
 				assert False
-		return u'\n'.join( lines )
+		return '\n'.join( lines )
 
 	def formatContextList( context ):
 		lines = [formatContext(c).replace('\n', ' - ') for c in context]
-		return u'\n'.join( lines )
+		return '\n'.join( lines )
 		
 	wb = xlsxwriter.Workbook( fname_excel )
 	
@@ -46,7 +46,7 @@ def StageRaceGCToExcel( fname_excel, model ):
 	
 	#---------------------------------------------------------------------------------------
 	def writeIC( ws, stage ):
-		fit_sheet = FitSheetWrapper( ws )
+		fit_sheet = FitSheetWrapperXLSX( ws )
 		
 		ic_fields = ['gap'] + list(Model.IndividualClassification._fields[1:-1])
 		riderFields = set( model.registration.getFieldsInUse() )
@@ -94,7 +94,7 @@ def StageRaceGCToExcel( fname_excel, model ):
 	
 	#---------------------------------------------------------------------------------------
 	def writeTeamClass( ws, stage ):
-		fit_sheet = FitSheetWrapper( ws )
+		fit_sheet = FitSheetWrapperXLSX( ws )
 		
 		headers = ['Place', 'Team', 'Gap', 'Combined Times', 'Combined Places', 'Best Rider GC']
 		
@@ -126,11 +126,11 @@ def StageRaceGCToExcel( fname_excel, model ):
 
 	#---------------------------------------------------------------------------------------
 	def writeTeamGC( ws ):
-		fit_sheet = FitSheetWrapper( ws )
+		fit_sheet = FitSheetWrapperXLSX( ws )
 		
 		headers = (
 			['Place', 'Team', 'Gap', 'Combined Time'] +
-			['# {}s'.format(Utils.ordinal(i+1)) for i in xrange(len(model.all_teams))] +
+			['# {}s'.format(Utils.ordinal(i+1)) for i in range(len(model.all_teams))] +
 			['Best Rider GC']
 		)
 		
@@ -158,7 +158,7 @@ def StageRaceGCToExcel( fname_excel, model ):
 			# ws.write_comment( rowNum, col, formatContextList(tgc[0].context), wide_comment_style )
 			col += 1
 			
-			for i in xrange(1, len(tgc)-2):
+			for i in range(1, len(tgc)-2):
 				if tgc[i].value:
 					fit_sheet.write( rowNum, col, tgc[i].value )
 					# ws.write_comment( rowNum, col, u'\n'.join(tgc[i].context), narrow_comment_style )
@@ -178,7 +178,7 @@ def StageRaceGCToExcel( fname_excel, model ):
 	
 	#---------------------------------------------------------------------------------------
 	def writeSprintGC( ws ):
-		fit_sheet = FitSheetWrapper( ws )
+		fit_sheet = FitSheetWrapperXLSX( ws )
 		
 		riderFields = set( model.registration.getFieldsInUse() )
 		headers = (
@@ -200,16 +200,16 @@ def StageRaceGCToExcel( fname_excel, model ):
 				continue
 		
 			col = 0
-			fit_sheet.write(  rowNum, col, unicode(place) ); col += 1			
-			fit_sheet.write(  rowNum, col, unicode(rider.bib) ); col += 1
-			fit_sheet.write(  rowNum, col, unicode(rider.last_name).upper()); col += 1
-			fit_sheet.write(  rowNum, col, unicode(rider.first_name) ); col += 1
-			fit_sheet.write(  rowNum, col, unicode(rider.team) ); col += 1
+			fit_sheet.write( rowNum, col, str(place) ); col += 1			
+			fit_sheet.write( rowNum, col, str(rider.bib) ); col += 1
+			fit_sheet.write( rowNum, col, str(rider.last_name).upper()); col += 1
+			fit_sheet.write( rowNum, col, str(rider.first_name) ); col += 1
+			fit_sheet.write( rowNum, col, str(rider.team) ); col += 1
 			
 			if 'uci_id' in riderFields:
-				fit_sheet.write(  rowNum, col, unicode(rider.uci_id) ); col += 1
+				fit_sheet.write(  rowNum, col, str(rider.uci_id) ); col += 1
 			if 'license' in riderFields:
-				fit_sheet.write(  rowNum, col, unicode(rider.license) ); col += 1
+				fit_sheet.write(  rowNum, col, str(rider.license) ); col += 1
 
 			for v in r[:-1]:
 				if v:
@@ -220,7 +220,7 @@ def StageRaceGCToExcel( fname_excel, model ):
 		
 	#---------------------------------------------------------------------------------------
 	def writeKOMGC( ws ):
-		fit_sheet = FitSheetWrapper( ws )
+		fit_sheet = FitSheetWrapperXLSX( ws )
 		
 		riderFields = set( model.registration.getFieldsInUse() )
 		headers = (
@@ -242,16 +242,16 @@ def StageRaceGCToExcel( fname_excel, model ):
 				continue
 		
 			col = 0
-			fit_sheet.write( rowNum, col, unicode(place) ); col += 1			
-			fit_sheet.write( rowNum, col, unicode(rider.bib) ); col += 1
-			fit_sheet.write( rowNum, col, unicode(rider.last_name).upper()); col += 1
-			fit_sheet.write( rowNum, col, unicode(rider.first_name) ); col += 1
-			fit_sheet.write( rowNum, col, unicode(rider.team) ); col += 1
+			fit_sheet.write( rowNum, col, str(place) ); col += 1			
+			fit_sheet.write( rowNum, col, str(rider.bib) ); col += 1
+			fit_sheet.write( rowNum, col, str(rider.last_name).upper()); col += 1
+			fit_sheet.write( rowNum, col, str(rider.first_name) ); col += 1
+			fit_sheet.write( rowNum, col, str(rider.team) ); col += 1
 			
 			if 'uci_id' in riderFields:
-				fit_sheet.write( rowNum, col, unicode(rider.uci_id) ); col += 1
+				fit_sheet.write( rowNum, col, str(rider.uci_id) ); col += 1
 			if 'license' in riderFields:
-				fit_sheet.write( rowNum, col, unicode(rider.license) ); col += 1
+				fit_sheet.write( rowNum, col, str(rider.license) ); col += 1
 
 			for v in r[:-1]:
 				if v:

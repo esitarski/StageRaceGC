@@ -10,7 +10,7 @@ initTranslationCalled = False
 def initTranslation():
 	global initTranslationCalled
 	if not initTranslationCalled:
-		gettext.install(AppVerName.split(None, 1), './locale', unicode=True)
+		gettext.install(AppVerName.split(None, 1), './locale')
 		initTranslationCalled = True
 		
 initTranslation()
@@ -96,7 +96,7 @@ except:
 
 if os.path.basename(dirName) == 'library.zip':
 	dirName = os.path.dirname(dirName)
-imageFolder = os.path.join(dirName, 'images')
+imageFolder = os.path.join(dirName, 'StageRaceGCImages')
 htmlDocFolder = os.path.join(dirName, 'StageRaceGCHtmlDoc')
 
 PlatformName = platform.system()
@@ -116,19 +116,21 @@ def writeLog( message ):
 		pass
 				
 def disable_stdout_buffering():
+	'''
 	fileno = sys.stdout.fileno()
 	temp_fd = os.dup(fileno)
 	sys.stdout.close()
 	os.dup2(temp_fd, fileno)
 	os.close(temp_fd)
 	sys.stdout = os.fdopen(fileno, "w", 0)
+	'''
 		
 def logCall( f ):
 	def _getstr( x ):
 		return u'{}'.format(x) if not isinstance(x, wx.Object) else u'<<{}>>'.format(x.__class__.__name__)
 	
 	def new_f( *args, **kwargs ):
-		parameters = [_getstr(a) for a in args] + [ u'{}={}'.format( key, _getstr(value) ) for key, value in kwargs.iteritems() ]
+		parameters = [_getstr(a) for a in args] + [ '{}={}'.format( key, _getstr(value) ) for key, value in kwargs.items() ]
 		writeLog( 'call: {}({})'.format(f.__name__, removeDiacritic(u', '.join(parameters))) )
 		return f( *args, **kwargs)
 	return new_f
@@ -143,23 +145,25 @@ def logException( e, exc_info ):
 	writeLog( '**** End Exception ****' )
 
 def fieldToHeader( f, multi_line=False ):
-	if f == u'uci_id':
+	if f == 'uci_id':
 		return _('UCI ID')
-	if f == u'uci_code':
+	if f == 'uci_code':
 		return _('UCI Code')
-	if f.endswith(u'_name'):
+	if f.endswith('_name'):
 		f = f[:-5]
-	f = f.replace(u'_', u' ').replace(u'uci', u'UCI')
-	s = u' '.join( w[0].upper() + w[1:] for w in f.split() )
-	s = s.replace(u' With ', u' with ').replace(u' In ', u' in ').replace(u' Of ', u' of ')
+	f = f.replace('_', u' ').replace('uci', 'UCI')
+	s = ' '.join( w[0].upper() + w[1:] for w in f.split() )
+	s = s.replace(' With ', ' with ').replace(' In ', ' in ').replace(' Of ', ' of ')
+	s = s.replace( 'with Bonus', '-Bonus' ).replace( 'Plus Penalty', '+Penalty' ).replace( 'Plus Second', '+Second' )
+	s = s.replace( 'Kom', 'KOM' )
 	if multi_line:
 		fields = s.split()
 		if len(fields) == 2:
-			s = u'\n'.join( fields )
+			s = '\n'.join( fields )
 		elif len(fields) > 2:
 			i = len(s) // 2
-			dFirst = s[:i].rfind(u' ')
-			dLast = s[i:].find(u' ')
+			dFirst = s[:i].rfind(' ')
+			dLast = s[i:].find(' ')
 			if dFirst > 0 or dLast > 0:
 				if dLast < 0:
 					dLast = 100000
@@ -167,7 +171,7 @@ def fieldToHeader( f, multi_line=False ):
 					j = dFirst
 				else:
 					j = i + dLast
-				s = s[:j] + u'\n' + s[j+1:]
+				s = s[:j] + '\n' + s[j+1:]
 	return s
 
 def formatTime( secs,
@@ -284,7 +288,7 @@ if sys.platform == 'darwin':
 
 def LaunchApplication( fnames ):
 	for fname in (fnames if isinstance(fnames, list) else [fnames]):
-		if os.name is 'nt':
+		if os.name == 'nt':
 			subprocess.call(('cmd', '/C', 'start', '', fname))
 		elif sys.platform.startswith('darwin'):
 			subprocess.call(('open', fname))

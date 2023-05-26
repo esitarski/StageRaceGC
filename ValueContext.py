@@ -33,14 +33,14 @@ class ValueContext( object ):
 		return self.value >  vc.value
 	
 	def __repr__( self ):
-		return u'ValueContext({}, {})'.format( self.value, self.context )
+		return 'ValueContext({}, {})'.format( self.value, self.context )
 		#return u'{}'.format(self.value)
 
 if __name__ == '__main__':
 	v = ValueContext(10, 100)
-	print v
+	print( v )
 	v += ValueContext(20, 200)
-	print v
+	print( v )
 	v += ValueContext(30, 300)
-	print v
+	print( v )
 	

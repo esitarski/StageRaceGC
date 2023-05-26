@@ -22,27 +22,27 @@ def StageRaceGCToGrid( notebook ):
 	
 	def getRiderInfo( bib ):
 		rider = model.registration.bibToRider[bib]
-		return u'{}: {}'.format(bib, rider.results_name)
+		return '{}: {}'.format(bib, rider.results_name)
 		
 	def formatContext( context ):
 		lines = []
 		for c in context:
 			if len(c) == 3:
 				t, p, bib = c
-				lines.append( u'{}  {} ({})'.format(getRiderInfo(bib), Utils.formatTime(t), Utils.ordinal(p)) )
+				lines.append( '{}  {} ({})'.format(getRiderInfo(bib), Utils.formatTime(t), Utils.ordinal(p)) )
 			elif len(c) == 2:
 				p, bib = c
-				lines.append( u'{} ({})'.format(getRiderInfo(bib), Utils.ordinal(p)) )
+				lines.append( '{} ({})'.format(getRiderInfo(bib), Utils.ordinal(p)) )
 			elif len(c) == 1:
 				bib = c[0]
 				lines.append( getRiderInfo(bib) )
 			else:
 				assert False
-		return u'\n'.join( lines )
+		return '\n'.join( lines )
 
 	def formatContextList( context ):
 		lines = [formatContext(c).replace('\n', ' - ') for c in context]
-		return u'\n'.join( lines )
+		return '\n'.join( lines )
 	
 	def getCommentCallback( grid ):
 		page = notebook.GetPageCount()
@@ -70,9 +70,12 @@ def StageRaceGCToGrid( notebook ):
 			(['license'] if 'license' in riderFields else []) +
 			list(ic_fields)
 		)
+		if headers[-1] == 'bib':
+			headers = headers[:-1]
 		
 		grid = ReorderableGrid( notebook )
-		grid.CreateGrid( len(getattr(stage, 'individual_gc', [])), len(headers) )
+		stage.individual_gc = getattr(stage, 'individual_gc', [])
+		grid.CreateGrid( len(stage.individual_gc), len(headers) )
 		grid.EnableReorderRows( False )
 		
 		for col, h in enumerate(headers):
@@ -94,19 +97,19 @@ def StageRaceGCToGrid( notebook ):
 		
 			col = 0
 			if r.retired_stage > 0:
-				grid.SetCellValue( rowNum, col, u'AB' ); col += 1
+				grid.SetCellValue( rowNum, col, 'AB' ); col += 1
 			else:
-				grid.SetCellValue( rowNum, col, unicode(place) ); col += 1
+				grid.SetCellValue( rowNum, col, str(place) ); col += 1
 			
-			grid.SetCellValue( rowNum, col, unicode(r.bib) ); col += 1
-			grid.SetCellValue( rowNum, col, unicode(rider.last_name).upper()); col += 1
-			grid.SetCellValue( rowNum, col, unicode(rider.first_name) ); col += 1
-			grid.SetCellValue( rowNum, col, unicode(rider.team) ); col += 1
+			grid.SetCellValue( rowNum, col, str(r.bib) ); col += 1
+			grid.SetCellValue( rowNum, col, str(rider.last_name).upper()); col += 1
+			grid.SetCellValue( rowNum, col, str(rider.first_name) ); col += 1
+			grid.SetCellValue( rowNum, col, str(rider.team) ); col += 1
 			
 			if 'uci_id' in riderFields:
-				grid.SetCellValue( rowNum, col, unicode(rider.uci_id) ); col += 1
+				grid.SetCellValue( rowNum, col, str(rider.uci_id) ); col += 1
 			if 'license' in riderFields:
-				grid.SetCellValue( rowNum, col, unicode(rider.license) ); col += 1
+				grid.SetCellValue( rowNum, col, str(rider.license) ); col += 1
 			
 			if r.retired_stage == 0:
 				grid.SetCellValue( rowNum, col, Utils.formatTime(r.gap, twoDigitHours=True) if gapLast != r.gap else sameGap )
@@ -119,8 +122,8 @@ def StageRaceGCToGrid( notebook ):
 				col += 1
 				
 				grid.SetCellValue( rowNum, col, Utils.formatTime(r.total_time_with_bonus_plus_penalty_plus_second_fraction, twoDigitHours=True, extraPrecision=True) ); col += 1
-				grid.SetCellValue( rowNum, col, unicode(r.sum_of_places) ); col += 1
-				grid.SetCellValue( rowNum, col, unicode(r.last_stage_place) ); col += 1
+				grid.SetCellValue( rowNum, col, str(r.sum_of_places) ); col += 1
+				grid.SetCellValue( rowNum, col, str(r.last_stage_place) ); col += 1
 			
 			rowNum +=1
 			
@@ -150,7 +153,7 @@ def StageRaceGCToGrid( notebook ):
 		timeLast = None
 		for place, tc in enumerate(stage.team_classification, 1):
 			col = 0
-			grid.SetCellValue( rowNum, col, unicode(place) ); col += 1
+			grid.SetCellValue( rowNum, col, str(place) ); col += 1
 			grid.SetCellValue( rowNum, col, tc.team ); col += 1
 			
 			grid.SetCellValue( rowNum, col, Utils.formatTime(tc.gap, twoDigitHours=True) if tc.gap != gapLast else sameGap )
@@ -163,11 +166,11 @@ def StageRaceGCToGrid( notebook ):
 			setComment( rowNum, col, formatContext(tc.sum_best_top_times.context), {'width':256} )
 			col += 1
 			
-			grid.SetCellValue( rowNum, col, unicode(tc.sum_best_top_places.value) )
+			grid.SetCellValue( rowNum, col, str(tc.sum_best_top_places.value) )
 			setComment( rowNum, col, formatContext(tc.sum_best_top_places.context), {'width':256} )
 			col += 1
 			
-			grid.SetCellValue( rowNum, col, unicode(tc.best_place.value) )
+			grid.SetCellValue( rowNum, col, str(tc.best_place.value) )
 			setComment( rowNum, col, formatContext(tc.best_place.context), {'width':256} )
 			col += 1
 			rowNum +=1
@@ -180,7 +183,7 @@ def StageRaceGCToGrid( notebook ):
 	def writeTeamGC():
 		headers = (
 			['Place', 'Team', 'Gap', 'Combined\nTime'] +
-			['{}s'.format(Utils.ordinal(i+1)) for i in xrange(len(model.all_teams))] +
+			['{}s'.format(Utils.ordinal(i+1)) for i in range(len(model.all_teams))] +
 			['Best\nRider GC']
 		)
 		
@@ -202,8 +205,8 @@ def StageRaceGCToGrid( notebook ):
 		timeLast = None
 		for place, tgc in enumerate(model.team_gc, 1):
 			col = 0
-			grid.SetCellValue( rowNum, col, unicode(place) ); col += 1
-			grid.SetCellValue( rowNum, col, unicode(tgc[-1]) ); col += 1
+			grid.SetCellValue( rowNum, col, str(place) ); col += 1
+			grid.SetCellValue( rowNum, col, str(tgc[-1]) ); col += 1
 			
 			combinedTime = tgc[0].value
 			if leaderTime is None:
@@ -217,13 +220,13 @@ def StageRaceGCToGrid( notebook ):
 			setComment( rowNum, col, formatContextList(tgc[0].context), {'width':512} )
 			col += 1
 			
-			for i in xrange(1, len(tgc)-2):
+			for i in range(1, len(tgc)-2):
 				if tgc[i].value:
-					grid.SetCellValue( rowNum, col, unicode(tgc[i].value) )
+					grid.SetCellValue( rowNum, col, str(tgc[i].value) )
 					setComment( rowNum, col, u'\n'.join(tgc[i].context), {'width':128} )
 				col += 1
 			
-			grid.SetCellValue( rowNum, col, unicode(tgc[-2].value) )
+			grid.SetCellValue( rowNum, col, str(tgc[-2].value) )
 			setComment( rowNum, col, formatContext(tgc[-2].context), {'width':256} )
 			col += 1
 			
@@ -272,19 +275,19 @@ def StageRaceGCToGrid( notebook ):
 				continue
 		
 			col = 0
-			grid.SetCellValue( rowNum, col, unicode(place) ); col += 1			
-			grid.SetCellValue( rowNum, col, unicode(rider.bib) ); col += 1
-			grid.SetCellValue( rowNum, col, unicode(rider.last_name).upper()); col += 1
-			grid.SetCellValue( rowNum, col, unicode(rider.first_name) ); col += 1
-			grid.SetCellValue( rowNum, col, unicode(rider.team) ); col += 1
+			grid.SetCellValue( rowNum, col, str(place) ); col += 1			
+			grid.SetCellValue( rowNum, col, str(rider.bib) ); col += 1
+			grid.SetCellValue( rowNum, col, str(rider.last_name).upper()); col += 1
+			grid.SetCellValue( rowNum, col, str(rider.first_name) ); col += 1
+			grid.SetCellValue( rowNum, col, str(rider.team) ); col += 1
 			
 			if 'uci_id' in riderFields:
-				grid.SetCellValue( rowNum, col, unicode(rider.uci_id) ); col += 1
+				grid.SetCellValue( rowNum, col, str(rider.uci_id) ); col += 1
 			if 'license' in riderFields:
-				grid.SetCellValue( rowNum, col, unicode(rider.license) ); col += 1
+				grid.SetCellValue( rowNum, col, str(rider.license) ); col += 1
 
 			for v in r[:-1]:
-				grid.SetCellValue( rowNum, col, unicode(v) if v else u'' ); col += 1
+				grid.SetCellValue( rowNum, col, str(v) if v else '' ); col += 1
 				
 			rowNum +=1
 			
@@ -324,19 +327,19 @@ def StageRaceGCToGrid( notebook ):
 				continue
 		
 			col = 0
-			grid.SetCellValue( rowNum, col, unicode(place) ); col += 1			
-			grid.SetCellValue( rowNum, col, unicode(rider.bib) ); col += 1
-			grid.SetCellValue( rowNum, col, unicode(rider.last_name).upper()); col += 1
-			grid.SetCellValue( rowNum, col, unicode(rider.first_name) ); col += 1
-			grid.SetCellValue( rowNum, col, unicode(rider.team) ); col += 1
+			grid.SetCellValue( rowNum, col, str(place) ); col += 1			
+			grid.SetCellValue( rowNum, col, str(rider.bib) ); col += 1
+			grid.SetCellValue( rowNum, col, str(rider.last_name).upper()); col += 1
+			grid.SetCellValue( rowNum, col, str(rider.first_name) ); col += 1
+			grid.SetCellValue( rowNum, col, str(rider.team) ); col += 1
 			
 			if 'uci_id' in riderFields:
-				grid.SetCellValue( rowNum, col, unicode(rider.uci_id) ); col += 1
+				grid.SetCellValue( rowNum, col, str(rider.uci_id) ); col += 1
 			if 'license' in riderFields:
-				grid.SetCellValue( rowNum, col, unicode(rider.license) ); col += 1
+				grid.SetCellValue( rowNum, col, str(rider.license) ); col += 1
 
 			for v in r[:-1]:
-				grid.SetCellValue( rowNum, col, unicode(v) if v else u'' ); col += 1
+				grid.SetCellValue( rowNum, col, str(v) if v else '' ); col += 1
 				
 			rowNum +=1
 			
@@ -346,12 +349,12 @@ def StageRaceGCToGrid( notebook ):
 	#------------------------------------------------------------------------------------
 	
 	if model.stages:
-		notebook.AddPage( writeIC(model.stages[-1]), u'IndividualGC' )
+		notebook.AddPage( writeIC(model.stages[-1]), 'IndividualGC' )
 		if model.sprint_gc:
-			notebook.AddPage( writeSprintGC(), u'SprintGC' )
+			notebook.AddPage( writeSprintGC(), 'SprintGC' )
 		if model.kom_gc:
-			notebook.AddPage( writeKOMGC(), u'KOMGC' )
-		notebook.AddPage( writeTeamGC(), u'TeamGC' )
+			notebook.AddPage( writeKOMGC(), 'KOMGC' )
+		notebook.AddPage( writeTeamGC(), 'TeamGC' )
 		for stage in reversed(model.stages):
 			notebook.AddPage( writeIC(stage), stage.sheet_name + '-GC' )
 			notebook.AddPage( writeTeamClass(stage), stage.sheet_name + '-TeamClass' )

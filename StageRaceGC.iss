@@ -1,17 +1,12 @@
-; -- StageRaceGC.iss --
-
 [Setup]
 #include "inno_setup.txt"
 ArchitecturesInstallIn64BitMode=x64
-DefaultDirName={pf}\StageRaceGC
+DefaultDirName={commonpf}\StageRaceGC
 DefaultGroupName=StageRaceGC
 UninstallDisplayIcon={app}\StageRaceGC.exe
-SourceDir=dist\StageRaceGC
-OutputBaseFilename=StageRaceGC_Setup
 ChangesAssociations=yes
 Compression=lzma2/ultra64
 SolidCompression=yes
-OutputDir=..\..\install
 
 [Registry]
 ; Automatically configure StageRaceGC to launch .smr files.

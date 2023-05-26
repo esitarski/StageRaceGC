@@ -7,17 +7,17 @@ import random
 import xlsxwriter
 import Utils
 from Excel import GetExcelReader
-from FitSheetWrapper import FitSheetWrapper
+from FitSheetWrapper import FitSheetWrapperXLSX
 
 def get_license():
-	return u''.join( 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[random.randint(0,25)] for i in xrange(6) )
+	return ''.join( 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[random.randint(0,25)] for i in range(6) )
 
 def get_uci_id():
 	dob = datetime.date.today() - datetime.timedelta( days=random.normalvariate(25,3)*365.25 )
-	return u'FRA{}'.format( dob.strftime( '%Y%m%d' ) ) 
+	return 'FRA{}'.format( dob.strftime( '%Y%m%d' ) ) 
 
 def get_uci_id():
-	uci_id = ''.join(random.choice('123456789') for i in xrange(9))
+	uci_id = ''.join(random.choice('123456789') for i in range(9))
 	uci_id += '{:02d}'.format(int(uci_id)%97)
 	return uci_id
 
@@ -40,8 +40,8 @@ mountain_points = '''
 9th					4
 10th				2'''.strip()
 
-kom_by_category = [[] for x in xrange(5)]
-for c in xrange(5):
+kom_by_category = [[] for x in range(5)]
+for c in range(5):
 	for p, line in enumerate(mountain_points.split('\n')):
 		try:
 			kom_by_category[c].append( int(line.split('\t')[5-c]) )
@@ -51,9 +51,9 @@ for c in xrange(5):
 def MakeExampleExcel():
 	random.seed( 0xed )
 	
-	common_first_names = [unicode(n,'utf-8') for n in 'Léopold Grégoire Aurélien Rémi Léandre Thibault Kylian Nathan Lucas Enzo Léo Louis Hugo Gabriel Ethan Mathis Jules Raphaël Arthur Théo Noah Timeo Matheo Clément Maxime Yanis Maël'.split()]
-	common_last_names = [unicode(n,'utf-8') for n in 'Tisserand Lavergne Guignard Parmentier Evrard Leclerc Martin Bernard Dubois Petit Durand Leroy Moreau Simon Laurent Lefevre Roux Fournier Dupont'.split()]
-	teams = [unicode(n,'utf-8') for n in 'Pirates of the Pavement,Coastbusters,Tour de Friends,Pesky Peddlers,Spoke & Mirrors'.split(',')]
+	common_first_names = 'Léopold Grégoire Aurélien Rémi Léandre Thibault Kylian Nathan Lucas Enzo Léo Louis Hugo Gabriel Ethan Mathis Jules Raphaël Arthur Théo Noah Timeo Matheo Clément Maxime Yanis Maël'.split()
+	common_last_names = 'Tisserand Lavergne Guignard Parmentier Evrard Leclerc Martin Bernard Dubois Petit Durand Leroy Moreau Simon Laurent Lefevre Roux Fournier Dupont'.split()
+	teams = 'Pirates of the Pavement,Coastbusters,Tour de Friends,Pesky Peddlers,Spoke & Mirrors'.split(',')
 	
 	fname_excel = os.path.join( Utils.getHomeDir(), 'StageRaceGC_Test_Input.xlsx' )
 	
@@ -63,7 +63,7 @@ def MakeExampleExcel():
 	high_precision_time_format = wb.add_format( {'num_format': 'hh:mm:ss.000'} )
 	
 	ws = wb.add_worksheet('Registration')
-	fit_sheet = FitSheetWrapper( ws )
+	fit_sheet = FitSheetWrapperXLSX( ws )
 	
 	fields = ['bib', 'first_name', 'last_name', 'uci_id', 'license', 'team']
 	row = 0
@@ -73,7 +73,7 @@ def MakeExampleExcel():
 	riders = 25
 	team_size = riders // len(teams)
 	bibs = []
-	for i in xrange(riders):
+	for i in range(riders):
 		row += 1
 		bibs.append((i//team_size+1)*10 + (i%team_size))
 		fit_sheet.write( row, 0, bibs[i] )
@@ -84,7 +84,7 @@ def MakeExampleExcel():
 		fit_sheet.write( row, 5, teams[i//team_size] )
 
 	stageCount = 5
-	for stage in xrange(stageCount):
+	for stage in range(stageCount):
 		isTT = (stage == 3-1)
 		if isTT:
 			tf = high_precision_time_format
@@ -94,7 +94,7 @@ def MakeExampleExcel():
 			tf = time_format
 			race_time = 4*60*60
 			ws = wb.add_worksheet('Stage {}-RR'.format(stage+1))
-		fit_sheet = FitSheetWrapper( ws )
+		fit_sheet = FitSheetWrapperXLSX( ws )
 		
 		fields = ['bib', 'time', 'place', 'penalty', 'bonus', 'kom 1 1C', 'kom 2 HC', 'sprint 1', 'stage sprint']
 		if isTT:
@@ -117,8 +117,8 @@ def MakeExampleExcel():
 			bibs.remove( b )
 			
 		if not isTT:
-			for c in xrange(5,9):
-				positions = [x for x in xrange(len(bibs))]
+			for c in range(5,9):
+				positions = [x for x in range(len(bibs))]
 				random.shuffle( positions )
 				if fields[c] == 'stage sprint':
 					points = stage_points[stage%len(stage_points)]
@@ -137,4 +137,4 @@ def MakeExampleExcel():
 	return fname_excel
 	
 if __name__ == '__main__':
-	print MakeExampleExcel()
+	print( MakeExampleExcel() )

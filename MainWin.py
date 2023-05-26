@@ -65,7 +65,7 @@ class MainWin( wx.Frame ):
 			startDirectory=os.path.expanduser('~'),
 			fileMask='Excel Spreadsheet (*.xlsx; *.xlsm; *.xls)|*.xlsx; *.xlsml; *.xls',
 			size=(400,-1),
-			history=lambda: [ self.filehistory.GetHistoryFile(i) for i in xrange(self.filehistory.GetCount()) ],
+			history=lambda: [ self.filehistory.GetHistoryFile(i) for i in range(self.filehistory.GetCount()) ],
 			changeCallback=self.doChangeCallback,
 		)
 		inputBoxSizer.Add( self.fileBrowse, 0, flag=wx.EXPAND|wx.ALL, border=4 )
@@ -93,7 +93,7 @@ class MainWin( wx.Frame ):
 		self.openExcel.Bind( wx.EVT_BUTTON, self.onOpenExcel )
 		
 		horizontalControlSizer.AddSpacer( 48 )
-		horizontalControlSizer.Add( self.openExcel, flag=wx.ALIGN_RIGHT|wx.ALL, border=4 )
+		horizontalControlSizer.Add( self.openExcel, flag=wx.ALL, border=4 )
 				
 		inputBoxSizer.Add( horizontalControlSizer, flag=wx.EXPAND )
 		
@@ -128,18 +128,22 @@ class MainWin( wx.Frame ):
 	def onOpenExcel( self, event ):
 		filename = self.fileBrowse.GetValue()
 		if not filename:
+			Utils.MessageOK( self, "\n".join( [
+					_("Please Enter or Browse... an Excel file."),
+				] )
+			)
 			return
-		wait = wx.BusyCursor()
-		Utils.LaunchApplication( filename )
+		with wx.BusyCursor():
+			Utils.LaunchApplication( filename )
 		
 	def onTutorial( self, event ):
 		if not Utils.MessageOKCancel( self, u"\n".join( [
 					_("Launch the StageRaceGC Tutorial."),
 					_("This open a sample Excel input file created into your home folder."),
 					_("This data in this sheet is made-up, although it does include some current rider's names."),
-					u"",
+					"",
 					_("It will also open the Tutorial page in your browser.  If you can't see your browser, make sure you bring to the front."),
-					u"",
+					"",
 					_("Continue?"),
 					] )
 				):
@@ -148,8 +152,8 @@ class MainWin( wx.Frame ):
 			fname_excel = MakeExampleExcel()
 		except Exception as e:
 			traceback.print_exc()
-			Utils.MessageOK( self, u'{}\n\n{}\n\n{}'.format(
-					u'Problem creating Excel sheet.',
+			Utils.MessageOK( self, '{}\n\n{}\n\n{}'.format(
+					'Problem creating Excel sheet.',
 					e,
 					_('If the Excel file is open, please close it and try again')
 				)
@@ -185,18 +189,18 @@ class MainWin( wx.Frame ):
 		stages = (stages or (Model.model and Model.model.stages) or [])
 			
 		def insert_stage_info( stage ):
-			idx = self.stageList.InsertItem( sys.maxint, stage.sheet_name )
-			self.stageList.SetItem( idx, 1, unicode(len(stage)) )
+			idx = self.stageList.InsertItem( 999999, stage.sheet_name )
+			self.stageList.SetItem( idx, 1, str(len(stage)) )
 			if stage.errors:
-				self.stageList.SetItem( idx, 2, u'{}: {}'.format(len(stage.errors), u'  '.join(u'[{}]'.format(e) for e in stage.errors)) )
+				self.stageList.SetItem( idx, 2, '{}: {}'.format(len(stage.errors), '  '.join('[{}]'.format(e) for e in stage.errors)) )
 			else:
-				self.stageList.SetItem( idx, 2, u'                                                                ' )
+				self.stageList.SetItem( idx, 2, '                                                                ' )
 		
 		insert_stage_info( registration )
 		for stage in stages:
 			insert_stage_info( stage )
 		
-		for col in xrange(3):
+		for col in range(3):
 			self.stageList.SetColumnWidth( col, wx.LIST_AUTOSIZE )
 		self.stageList.SetColumnWidth( 1, 52 )
 		self.stageList.Refresh()
@@ -223,7 +227,7 @@ class MainWin( wx.Frame ):
 				pass
 		except Exception as e:
 			traceback.print_exc()
-			Utils.MessageOK( self, u'{}:\n\n    {}\n\n{}'.format( _('Cannot Open Excel file'), self.fname, e), _('Cannot Open Excel File') )
+			Utils.MessageOK( self, '{}:\n\n    {}\n\n{}'.format( _('Cannot Open Excel file'), self.fname, e), _('Cannot Open Excel File') )
 			self.setUpdated( False )
 			return
 		
@@ -238,7 +242,7 @@ class MainWin( wx.Frame ):
 			Model.read( self.fname, callbackfunc=self.updateStageList )
 		except Exception as e:
 			traceback.print_exc()
-			Utils.MessageOK( self, u'{}:\n\n    {}\n\n{}'.format( _('Excel File Error'), self.fname, e), _('Excel File Error') )
+			Utils.MessageOK( self, '{}:\n\n    {}\n\n{}'.format( _('Excel File Error'), self.fname, e), _('Excel File Error') )
 			self.setUpdated( False )
 			return
 		
@@ -269,7 +273,7 @@ class MainWin( wx.Frame ):
 			StageRaceGCToExcel( fname_excel, Model.model )
 		except Exception as e:
 			Utils.MessageOK( self,
-				u'{}: "{}"\n\n{}\n\n"{}"'.format(
+				'{}: "{}"\n\n{}\n\n"{}"'.format(
 						_("Write Failed"),
 						e,
 						_("If you have this file open, close it and try again."),

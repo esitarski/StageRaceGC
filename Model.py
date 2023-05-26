@@ -1,4 +1,3 @@
-
 import os
 import re
 import sys
@@ -13,7 +12,7 @@ import Utils
 
 ClimbCategoryLowest = 4
 
-class Rider( object ):
+class Rider:
 	Fields = (
 		'bib',
 		'first_name', 'last_name',
@@ -32,7 +31,7 @@ class Rider( object ):
 			
 			# Find the last alpha character.
 			cLast = 'C'
-			for i in xrange(len(name)-1, -1, -1):
+			for i in range(len(name)-1, -1, -1):
 				if name[i].isalpha():
 					cLast = name[i]
 					break
@@ -59,7 +58,7 @@ class Rider( object ):
 				# Find the last lower-case letter preceeding a space.  Assume that is the last char in the first_name
 				j = 0
 				i = 0
-				while 1:
+				while True:
 					i = name.find( u' ', i )
 					if i < 0:
 						break
@@ -74,7 +73,7 @@ class Rider( object ):
 			setattr( self, f, kwargs.get(f, None) )
 			
 		if self.license is not None:
-			self.license = unicode(self.license).strip()
+			self.license = str(self.license).strip()
 			
 		if self.row is not None:
 			try:
@@ -83,12 +82,12 @@ class Rider( object ):
 				self.row = None
 				
 		if self.last_name:
-			self.last_name = unicode(self.last_name).replace(u'*',u'').strip()
-		self.last_name = self.last_name or u''
+			self.last_name = str(self.last_name).replace('*','').strip()
+		self.last_name = self.last_name or ''
 			
 		if self.first_name:
-			self.first_name = unicode(self.first_name).replace(u'*',u'').replace(u'(JR)',u'').strip()
-		self.first_name = self.first_name or u''
+			self.first_name = str(self.first_name).replace('*','').replace('(JR)','').strip()
+		self.first_name = self.first_name or ''
 		
 		assert self.bib is not None, 'Missing Bib'
 		self.bib = int(self.bib)
@@ -98,24 +97,24 @@ class Rider( object ):
 				self.uci_id = int(self.uci_id)
 			except:
 				pass
-			self.uci_id = unicode(self.uci_id).strip()
+			self.uci_id = str(self.uci_id).strip()
 			if len(self.uci_id) != 11:
-				raise ValueError( u'Row {}: invalid uci_id: {} incorrect length'.format(self.row, self.uci_id) )
+				raise ValueError( 'Row {}: invalid uci_id: {} incorrect length'.format(self.row, self.uci_id) )
 			if not self.uci_id.isdigit():
-				raise ValueError( u'Row {}: invalid uci_id: {} must be all digits'.format(self.row, self.uci_id) )
+				raise ValueError( 'Row {}: invalid uci_id: {} must be all digits'.format(self.row, self.uci_id) )
 			if int(self.uci_id[:-2]) % 97 != int(self.uci_id[-2:]):
-				raise ValueError( u'Row {}: invalid uci_id: {} checkdigit error'.format(self.row, self.uci_id) )
+				raise ValueError( 'Row {}: invalid uci_id: {} checkdigit error'.format(self.row, self.uci_id) )
 				
 	@property
 	def full_name( self ):
-		return u'{} {}'.format( self.first_name, self.last_name )
+		return '{} {}'.format( self.first_name, self.last_name )
 		
 	@property
 	def results_name( self ):
-		return u','.join( name for name in [(self.last_name or u'').upper(), self.first_name] if name )
+		return ','.join( name for name in [(self.last_name or u'').upper(), self.first_name] if name )
 		
 	def __repr__( self ):
-		return u'Rider({})'.format(u','.join( u'{}'.format(getattr(self, a)) for a in self.Fields ))
+		return 'Rider({})'.format(u','.join( u'{}'.format(getattr(self, a)) for a in self.Fields ))
 
 def ExcelTimeToSeconds( t ):
 	if t is not None:
@@ -131,7 +130,7 @@ def setValueAt( a, i, v ):
 	
 reNonDigit = re.compile( '[^0-9]' )
 	
-class Result( object ):
+class Result:
 	Fields = (
 		'bib',
 		'time',
@@ -143,12 +142,12 @@ class Result( object ):
 		'sprint1', 'sprint2', 'sprint3', 'sprint4', 'sprint5', 'sprint6', 'sprint7', 'sprint8',
 		'stagesprint',
 	)
-	NumericFields = set([
+	NumericFields = {
 		'bib', 'row', 'place', 'time', 'bonus', 'penalty', 'gap',
 		'kom1', 'kom2', 'kom3', 'kom4', 'kom5', 'kom6', 'kom7', 'kom8', 'kom9',
 		'sprint1', 'sprint2', 'sprint3', 'sprint4', 'sprint5', 'sprint6', 'sprint7', 'sprint8', 'sprint9',
 		'stagesprint',
-	])
+	}
 	
 	deferred = []
 	
@@ -179,11 +178,15 @@ class Result( object ):
 		def setListValue( a, k, v ):
 			try:
 				i = int(reNonDigit.sub('', k))
-			except:
+			except Exception as e:
 				return
 				
 			# Check if there is a bib number for another result.
-			if not isinstance(v, (float, long, int)) and ',' in v:
+			try:
+				hasComma = ',' in v
+			except Exception as e:
+				hasComma = False
+			if hasComma:
 				bib, v = v.split(',', 2)
 				try:
 					bib = int(bib.strip())
@@ -200,7 +203,7 @@ class Result( object ):
 				return
 			setValueAt( a, i-1, v )
 		
-		for k, v in kwargs.iteritems():
+		for k, v in kwargs.items():
 			if k.startswith('kom'):
 				setListValue( self.kom, k, v )
 			elif k.startswith('sprint'):
@@ -235,21 +238,21 @@ class Result( object ):
 		kom = 'kom=[{}]'.format(','.join('{}'.format(v) for v in self.kom))
 		sprint = 'sprint=[{}]'.format(','.join('{}'.format(v) for v in self.sprint))
 		stage_sprint = 'stage_sprint={}'.format( self.stage_sprint )
-		return u'Result({}, {}, {}, {})'.format( u','.join( u'{}'.format(getattr(self, a)) for a in self.Fields ),
+		return 'Result({}, {}, {}, {})'.format( ','.join( '{}'.format(getattr(self, a)) for a in self.Fields ),
 			kom, sprint, stage_sprint )
 
 reNonAlphaNum = re.compile( '[^A-Z0-9]+' )
 header_sub = {
-	u'RANK':	u'PLACE',
-	u'POS':		u'PLACE',
-	u'BIBNUM':	u'BIB',
-	u'NUM':		u'BIB',
-	u'NUMBER':	u'BIB',
-	u'FNAME':	u'FIRST',
-	u'LNAME':	u'LAST',
+	'RANK':		'PLACE',
+	'POS':		'PLACE',
+	'BIBNUM':	'BIB',
+	'NUM':		'BIB',
+	'NUMBER':	'BIB',
+	'FNAME':	'FIRST',
+	'LNAME':	'LAST',
 }
 def scrub_header( h ):
-	h = unicode(h).upper()
+	h = str(h).upper()
 	if h.endswith('_NAME') or h.endswith(' NAME'):
 		h = h[:-5]
 	h = reNonAlphaNum.sub( '', Utils.removeDiacritic(h) )
@@ -298,7 +301,7 @@ def readSheet( reader, sheet_name, header_fields ):
 	
 		# Create a Result from the row.
 		row_fields = {}
-		for field, column in header_map.iteritems():
+		for field, column in header_map.items():
 			try:
 				row_fields[field] = row[column]
 			except IndexError:
@@ -310,7 +313,7 @@ def readSheet( reader, sheet_name, header_fields ):
 	
 	return content, climb_categories, errors, header_row
 
-class Registration( object ):
+class Registration:
 	def __init__( self, sheet_name = 'Registration' ):
 		self.sheet_name = sheet_name
 		self.reset()
@@ -350,7 +353,7 @@ class Registration( object ):
 	def __len__( self ):
 		return len(self.riders)
 
-class Stage( object ):
+class Stage:
 	def __init__( self, sheet_name ):
 		self.sheet_name = sheet_name
 		self.reset()
@@ -395,14 +398,14 @@ class Stage( object ):
 		self.climb_categories = [max(min(c, 4), 0) for c in self.climb_categories]
 		return self.errors
 	
-	def isTTT( self ):
-		return self.sheet_name.endswith('-TTT')
+	def isRR( self ):
+		return self.sheet_name.endswith('-RR')
 	
 	def isITT( self ):
 		return self.sheet_name.endswith('-ITT')
 	
-	def isRR( self ):
-		return self.sheet_name.endswith('-RR')
+	def isTTT( self ):
+		return self.sheet_name.endswith('-TTT')
 	
 	def __len__( self ):
 		return len(self.results)
@@ -416,7 +419,7 @@ class StageTTT( Stage ):
 class StageRR( Stage ):
 	pass
 
-class TeamPenalty( object ):
+class TeamPenalty:
 	Fields = (
 		'team',
 		'penalty',
@@ -440,9 +443,9 @@ class TeamPenalty( object ):
 			pass
 			
 	def __repr__( self ):
-		return u'TeamPenalty({})'.format( u','.join( u'{}'.format(getattr(self, a)) for a in self.Fields ) )
+		return u'TeamPenalty({})'.format( ','.join( u'{}'.format(getattr(self, a)) for a in self.Fields ) )
 
-class TeamPenalties( object ):
+class TeamPenalties:
 	def __init__( self, sheet_name = 'Team Penalties' ):
 		self.sheet_name = sheet_name
 		self.reset()
@@ -620,7 +623,7 @@ class Model( object):
 				)
 			)
 			leaderTime = ic[0].total_time_with_bonus_plus_penalty
-			for i in xrange(1, len(ic)):
+			for i in range(1, len(ic)):
 				ic[i] = ic[i]._replace(gap=ic[i].total_time_with_bonus_plus_penalty-leaderTime)
 		
 		stageLast.individual_gc = ic
@@ -657,7 +660,7 @@ class Model( object):
 			
 			stage.team_classification = [
 				TeamClassification(sum_best_top_times[team], sum_best_top_places[team], best_place[team], team, 0)
-					for team in sum_best_top_times.iterkeys() if top_count[team] == 3
+					for team in sum_best_top_times.keys() if top_count[team] == 3
 			]
 			
 			if stage.team_classification:
@@ -668,7 +671,7 @@ class Model( object):
 					)
 				)
 				leaderTime = stage.team_classification[0].sum_best_top_times.value
-				for i in xrange(1, len(stage.team_classification)):
+				for i in range(1, len(stage.team_classification)):
 					gap = stage.team_classification[i].sum_best_top_times.value -  leaderTime
 					stage.team_classification[i] = stage.team_classification[i]._replace(gap=gap)
 				
@@ -693,7 +696,7 @@ class Model( object):
 				continue
 			
 		team_top_times = { team: VC() for team in teams }
-		team_place_count = { team:  [VC() for i in xrange(total_teams)] for team in teams }
+		team_place_count = { team:  [VC() for i in range(total_teams)] for team in teams }
 		
 		for stage in self.stages:
 			try:
@@ -752,7 +755,7 @@ class Model( object):
 					bibCategoryWins[bib][category] += 1
 		# Sort by decreasing total KOM, then by decreasing wins by categegory climb, then by gc.
 		kom = [[bibKOMTotal[bib]] + bibCategoryWins[bib] + [lastStageGC[bib], bib]
-			for bib in bibKOMTotal.iterkeys()]
+			for bib in bibKOMTotal.keys()]
 		kom.sort( reverse=True, key=lambda x: x[:-2] + [-x[-2]] )
 		self.kom_gc = kom
 		
@@ -800,7 +803,7 @@ class Model( object):
 				bibStageWins[stage_sprint_winner] += 1
 		
 		sprint = [[bibSprintTotal[bib], bibStageWins[bib], bibSprintWins[bib], lastStageGC[bib], bib]
-			for bib in bibSprintTotal.iterkeys()]
+			for bib in bibSprintTotal.keys()]
 		
 		# Sort by decreasing total Sprint points, then by stage wins, then by sprint wins, then by gc.
 		sprint.sort( reverse=True, key=lambda x: x[:-2] + [-x[-2]] )
@@ -828,25 +831,25 @@ def unitTest():
 	
 	model.getGCs()
 	
-	print '*' * 70
-	print 'Individual GC'
-	print '*' * 70
+	print( '*' * 70 )
+	print( 'Individual GC' )
+	print( '*' * 70 )
 	for gc in model.stages[-1].individual_gc:
-		print gc
+		print( gc )
 		
-	print '*' * 70
-	print 'Team GC'
-	print '*' * 70
+	print( '*' * 70 )
+	print( 'Team GC' )
+	print( '*' * 70 )
 	for gc in model.team_gc:
-		print gc
+		print( gc )
 		
-	print '*' * 70
-	print 'Team Classification by Stage'
-	print '*' * 70
+	print( '*' * 70 )
+	print( 'Team Classification by Stage' )
+	print( '*' * 70 )
 	for stage in model.stages:
 		for gc in stage.team_classification:
-			print gc
-		print '-----------------'
+			print( gc )
+		print( '-----------------' )
 	return model, fname
 	
 if __name__ == '__main__':

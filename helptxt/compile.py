@@ -7,7 +7,7 @@ import zipfile
 import shutil
 import codecs
 import datetime
-import cStringIO as StringIO
+from io import StringIO
 from contextlib import contextmanager
 
 HtmlDocFolder = 'StageRaceGCHtmlDoc'
@@ -29,7 +29,7 @@ def fileOlderThan( srcFile, transFile ):
 
 reImage = re.compile( r'src="\.\/images\/([^"]+)"' )
 def InlineImages( html ):
-	while 1:
+	while True:
 		match = reImage.search( html )
 		if not match:
 			break
@@ -78,10 +78,12 @@ def CompileHelp( dir = '.' ):
 		with codecs.open('Links.md', 'r', encoding='utf-8') as f:
 			links = f.read()
 			
-		for fname in glob.glob("./*.txt"):
-			print fname, '...'
+		for fname in glob.glob("./*.md"):
+			if 'Links' in fname:
+				continue
+			print( fname, '...' )
 			with codecs.open(fname, 'r', encoding='utf-8') as f:
-				input = StringIO.StringIO()
+				input = StringIO()
 				input.write( links )
 				input.write( f.read() )
 				
